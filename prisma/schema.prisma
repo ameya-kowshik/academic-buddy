@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+ // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  profilePic  String?
+  firebaseUid String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tasks       Task[]
+  pomodoroLogs PomodoroLog[]
+  flashcards  Flashcard[]
+  quizzes     Quiz[]
+  analytics   Analytics[]
+  aiSuggestions AISuggestion[]
+
+  @@map("users")
+}
+
+// Task management with AI-generated tags and priorities
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus  @default(PENDING)
+  priority    Priority    @default(MEDIUM)
+  tags        String[]    // AI-generated tags
+  dueDate     DateTime?
+  isRecurring Boolean     @default(false)
+  recurringPattern String? // e.g., "daily", "weekly", "monthly"
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pomodoroLogs PomodoroLog[]
+
+  @@map("tasks")
+}
+
+// Pomodoro session tracking
+model PomodoroLog {
+  id          String   @id @default(cuid())
+  duration    Int      // in minutes
+  focusScore  Int?     // 1-10 rating
+  notes       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@map("pomodoro_logs")
+}
+
+// Flashcards generated from uploaded materials
+model Flashcard {
+  id          String   @id @default(cuid())
+  title       String
+  question    String
+  answer      String
+  sourceFile  String?  // reference to uploaded file
+  grouping    String?  // for organizing related flashcards
+  difficulty  Int      @default(1) // 1-5 scale
+  reviewCount Int      @default(0)
+  lastReviewed DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("flashcards")
+}
+
+// Quizzes with multiple choice questions
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  question    String
+  options     Json     // JSON array of options
+  correctAnswer String
+  explanation String?
+  grouping    String?  // for organizing related quizzes
+  difficulty  Int      @default(1) // 1-5 scale
+  sourceFile  String?  // reference to uploaded file
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts    QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+// Track quiz attempts for analytics
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  selectedAnswer String
+  isCorrect   Boolean
+  timeSpent   Int?     // in seconds
+  attemptedAt DateTime @default(now())
+
+  // Relations
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+// Analytics and insights tracking
+model Analytics {
+  id              String   @id @default(cuid())
+  date            DateTime @default(now()) @db.Date
+  tasksCompleted  Int      @default(0)
+  pomodoroSessions Int     @default(0)
+  focusHours      Float    @default(0)
+  aiSuggestionsAccepted Int @default(0)
+  aiSuggestionsRejected Int @default(0)
+  flashcardsReviewed Int   @default(0)
+  quizzesCompleted Int     @default(0)
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("analytics")
+}
+
+// AI suggestions and user responses
+model AISuggestion {
+  id          String           @id @default(cuid())
+  type        SuggestionType
+  content     Json             // suggestion details
+  status      SuggestionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  // Relations
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_suggestions")
+}
+
+// Enums
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SuggestionType {
+  RESCHEDULE_TASK
+  CREATE_FLASHCARD
+  CREATE_QUIZ
+  BREAK_REMINDER
+  STUDY_SESSION
+}
+
+enum SuggestionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
