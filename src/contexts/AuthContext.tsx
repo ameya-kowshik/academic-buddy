@@ -11,7 +11,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase/firebaseConfig';
-import { User } from '@/generated/prisma';
+import { User } from '@prisma/client';
 
 interface AuthContextType {
   user: FirebaseUser | null;

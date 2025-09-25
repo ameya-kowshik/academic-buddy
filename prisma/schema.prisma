@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
- // output   = "../src/generated/prisma"
+  // output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -25,34 +25,35 @@ model User {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  tasks       Task[]
-  pomodoroLogs PomodoroLog[]
-  flashcards  Flashcard[]
-  quizzes     Quiz[]
-  analytics   Analytics[]
-  aiSuggestions AISuggestion[]
+  tasks           Task[]
+  pomodoroLogs    PomodoroLog[]
+  flashcards      Flashcard[]
+  quizzes         Quiz[]
+  analytics       Analytics[]
+  aiSuggestions   AISuggestion[]
+  sourceMaterials SourceMaterial[]
 
   @@map("users")
 }
 
 // Task management with AI-generated tags and priorities
 model Task {
-  id          String      @id @default(cuid())
-  title       String
-  description String?
-  status      TaskStatus  @default(PENDING)
-  priority    Priority    @default(MEDIUM)
-  tags        String[]    // AI-generated tags
-  dueDate     DateTime?
-  isRecurring Boolean     @default(false)
+  id               String     @id @default(cuid())
+  title            String
+  description      String?
+  status           TaskStatus @default(PENDING)
+  priority         Priority   @default(MEDIUM)
+  tags             String[] // AI-generated tags
+  dueDate          DateTime?
+  isRecurring      Boolean    @default(false)
   recurringPattern String? // e.g., "daily", "weekly", "monthly"
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  completedAt DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  completedAt      DateTime?
 
   // Relations
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pomodoroLogs PomodoroLog[]
 
   @@map("tasks")
@@ -60,95 +61,153 @@ model Task {
 
 // Pomodoro session tracking
 model PomodoroLog {
-  id          String   @id @default(cuid())
-  duration    Int      // in minutes
-  focusScore  Int?     // 1-10 rating
+  id          String    @id @default(cuid())
+  duration    Int // in minutes
+  focusScore  Int? // 1-10 rating
   notes       String?
-  startedAt   DateTime @default(now())
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  taskId      String?
-  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@map("pomodoro_logs")
 }
 
-// Flashcards generated from uploaded materials
-model Flashcard {
-  id          String   @id @default(cuid())
-  title       String
-  question    String
-  answer      String
-  sourceFile  String?  // reference to uploaded file
-  grouping    String?  // for organizing related flashcards
-  difficulty  Int      @default(1) // 1-5 scale
-  reviewCount Int      @default(0)
-  lastReviewed DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// Source materials (PDFs, documents) uploaded by users
+model SourceMaterial {
+  id            String    @id @default(cuid())
+  fileName      String
+  fileUrl       String // Storage URL (Supabase/local)
+  fileSize      Int // Size in bytes
+  mimeType      String // application/pdf, text/plain, etc.
+  extractedText String? // OCR/extracted content
+  uploadedAt    DateTime  @default(now())
+  processedAt   DateTime? // When OCR/AI processing completed
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcards Flashcard[]
+  quizzes    Quiz[]
+
+  @@map("source_materials")
+}
+
+// Flashcards generated from uploaded materials
+model Flashcard {
+  id           String    @id @default(cuid())
+  title        String
+  question     String
+  answer       String
+  grouping     String? // for organizing related flashcards
+  difficulty   Int       @default(1) // 1-5 scale
+  reviewCount  Int       @default(0)
+  lastReviewed DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceMaterialId String?
+  sourceMaterial   SourceMaterial? @relation(fields: [sourceMaterialId], references: [id], onDelete: SetNull)
 
   @@map("flashcards")
 }
 
-// Quizzes with multiple choice questions
+// Quiz sets containing multiple questions
 model Quiz {
   id          String   @id @default(cuid())
   title       String
-  question    String
-  options     Json     // JSON array of options
-  correctAnswer String
-  explanation String?
-  grouping    String?  // for organizing related quizzes
+  description String?
+  grouping    String? // for organizing related quizzes
   difficulty  Int      @default(1) // 1-5 scale
-  sourceFile  String?  // reference to uploaded file
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attempts    QuizAttempt[]
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceMaterialId String?
+  sourceMaterial   SourceMaterial? @relation(fields: [sourceMaterialId], references: [id], onDelete: SetNull)
+  questions        QuizQuestion[]
+  attempts         QuizAttempt[]
 
   @@map("quizzes")
 }
 
-// Track quiz attempts for analytics
-model QuizAttempt {
-  id          String   @id @default(cuid())
-  selectedAnswer String
-  isCorrect   Boolean
-  timeSpent   Int?     // in seconds
-  attemptedAt DateTime @default(now())
+// Individual questions within a quiz
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  questionText  String
+  options       Json // JSON array of options ["A) Option 1", "B) Option 2"]
+  correctAnswer String // "A) Option 1"
+  explanation   String?
+  order         Int // Question order within quiz
+  createdAt     DateTime @default(now())
 
   // Relations
-  quizId      String
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId   String
+  quiz     Quiz                  @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  attempts QuizQuestionAttempt[]
+
+  @@map("quiz_questions")
+}
+
+// Track quiz attempts (now for entire quiz sessions)
+model QuizAttempt {
+  id             String    @id @default(cuid())
+  score          Float // Percentage score (0.0 - 100.0)
+  totalQuestions Int // Number of questions in quiz at time of attempt
+  correctAnswers Int // Number of correct answers
+  timeSpent      Int? // Total time in seconds
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  // Relations
+  quizId           String
+  quiz             Quiz                  @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionAttempts QuizQuestionAttempt[]
 
   @@map("quiz_attempts")
 }
 
-// Analytics and insights tracking
-model Analytics {
-  id              String   @id @default(cuid())
-  date            DateTime @default(now()) @db.Date
-  tasksCompleted  Int      @default(0)
-  pomodoroSessions Int     @default(0)
-  focusHours      Float    @default(0)
-  aiSuggestionsAccepted Int @default(0)
-  aiSuggestionsRejected Int @default(0)
-  flashcardsReviewed Int   @default(0)
-  quizzesCompleted Int     @default(0)
+// Track individual question attempts within a quiz session
+model QuizQuestionAttempt {
+  id             String   @id @default(cuid())
+  selectedAnswer String
+  isCorrect      Boolean
+  timeSpent      Int? // Time spent on this question in seconds
+  attemptedAt    DateTime @default(now())
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizAttemptId  String
+  quizAttempt    QuizAttempt  @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  quizQuestionId String
+  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_question_attempts")
+}
+
+// Analytics and insights tracking
+model Analytics {
+  id                    String   @id @default(cuid())
+  date                  DateTime @default(now()) @db.Date
+  tasksCompleted        Int      @default(0)
+  pomodoroSessions      Int      @default(0)
+  focusHours            Float    @default(0)
+  aiSuggestionsAccepted Int      @default(0)
+  aiSuggestionsRejected Int      @default(0)
+  flashcardsReviewed    Int      @default(0)
+  quizzesCompleted      Int      @default(0)
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@map("analytics")
@@ -158,14 +217,14 @@ model Analytics {
 model AISuggestion {
   id          String           @id @default(cuid())
   type        SuggestionType
-  content     Json             // suggestion details
+  content     Json // suggestion details
   status      SuggestionStatus @default(PENDING)
   createdAt   DateTime         @default(now())
   respondedAt DateTime?
 
   // Relations
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("ai_suggestions")
 }
