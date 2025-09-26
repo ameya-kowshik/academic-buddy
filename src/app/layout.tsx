@@ -1,21 +1,20 @@
+import type React from "react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const roboto = Roboto({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
-  title: "Academic Buddy",
-  description: "Your AI-powered study companion for tasks, focus, and learning",
+  title: "Academic Buddy - AI-Powered Study Companion",
+  description:
+    "Transform your study sessions with AI-powered task management, focus sessions, and study materials.",
 };
 
 export default function RootLayout({
@@ -24,12 +23,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${roboto.variable} font-sans`}>
+      <body className="antialiased">
         <AuthProvider>
-          {children}
+          <Suspense>{children}</Suspense>
         </AuthProvider>
       </body>
     </html>
