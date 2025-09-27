@@ -1,51 +1,55 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   Timer,
   Brain,
   BarChart3,
-  Calendar,
   Play,
-  Star,
   ArrowRight,
-  Zap,
   Target,
   BookOpen,
   TrendingUp,
-} from "lucide-react"
-import { useEffect, useRef } from "react"
+} from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export default function LandingPage() {
-  const observerRef = useRef<IntersectionObserver | null>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("animate-in")
+            entry.target.classList.add("animate-in");
           }
-        })
+        });
       },
       {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px",
       }
-    )
+    );
 
-    const elements = document.querySelectorAll(".scroll-animate")
-    elements.forEach((el) => observerRef.current?.observe(el))
+    const elements = document.querySelectorAll(".scroll-animate");
+    elements.forEach((el) => observerRef.current?.observe(el));
 
     return () => {
       if (observerRef.current) {
-        observerRef.current.disconnect()
+        observerRef.current.disconnect();
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 relative overflow-hidden">
@@ -59,10 +63,18 @@ export default function LandingPage() {
           opacity: 1;
           transform: translateY(0) rotateX(0deg);
         }
-        .scroll-animate:nth-child(2) { transition-delay: 0.1s; }
-        .scroll-animate:nth-child(3) { transition-delay: 0.2s; }
-        .scroll-animate:nth-child(4) { transition-delay: 0.3s; }
-        .scroll-animate:nth-child(5) { transition-delay: 0.4s; }
+        .scroll-animate:nth-child(2) {
+          transition-delay: 0.1s;
+        }
+        .scroll-animate:nth-child(3) {
+          transition-delay: 0.2s;
+        }
+        .scroll-animate:nth-child(4) {
+          transition-delay: 0.3s;
+        }
+        .scroll-animate:nth-child(5) {
+          transition-delay: 0.4s;
+        }
       `}</style>
 
       {/* Header */}
@@ -84,13 +96,7 @@ export default function LandingPage() {
               Features
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a
-              href="#how-it-works"
-              className="text-slate-400 hover:text-slate-100 transition-all duration-300 ease-in-out hover:scale-105 relative group"
-            >
-              How it Works
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-300 group-hover:w-full"></span>
-            </a>
+
             <a
               href="#pricing"
               className="text-slate-400 hover:text-slate-100 transition-all duration-300 ease-in-out hover:scale-105 relative group"
@@ -100,15 +106,19 @@ export default function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-all duration-300 ease-in-out hover:scale-105"
-            >
-              Sign In
-            </Button>
-            <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">
-              Get Started
-            </Button>
+            <Link href="/login">
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-all duration-300 ease-in-out hover:scale-105"
+              >
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -129,18 +139,21 @@ export default function LandingPage() {
                   </span>
                 </h1>
                 <p className="text-xl text-slate-400 leading-relaxed max-w-lg transition-all duration-300 ease-in-out hover:text-slate-300">
-                  Transform scattered study sessions into organized, productive learning with smart task management,
-                  focus sessions, and AI-generated study materials.
+                  Transform scattered study sessions into organized, productive
+                  learning with smart task management, focus sessions, and
+                  AI-generated study materials.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 group"
-                >
-                  Start Free Today
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
+                <Link href="/signup">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 group"
+                  >
+                    Start Free Today
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Button>
+                </Link>
                 <Button
                   size="lg"
                   variant="outline"
@@ -167,7 +180,9 @@ export default function LandingPage() {
                   <CardContent className="p-6">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-100">Today's Focus</h3>
+                        <h3 className="text-lg font-semibold text-slate-100">
+                          Today's Focus
+                        </h3>
                         <Badge className="bg-green-500/10 text-green-400 border-green-500/20 animate-pulse">
                           Active
                         </Badge>
@@ -196,39 +211,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Problem Section */}
-      <section className="py-20 px-6 bg-slate-900/50 relative">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-16 tracking-tight text-slate-100 transition-all duration-500 ease-in-out hover:scale-[1.02] scroll-animate">
-            Struggling with{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              scattered study tools?
-            </span>
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Target, text: "Tasks spread across multiple apps" },
-              { icon: Timer, text: "Difficulty maintaining focus during study sessions" },
-              { icon: BookOpen, text: "Time-consuming flashcard creation" },
-              { icon: TrendingUp, text: "No visibility into study patterns" },
-            ].map((item, index) => (
-              <Card
-                key={index}
-                className="bg-slate-900/50 border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-500 ease-in-out backdrop-blur-sm hover:scale-105 hover:rotate-1 hover:bg-slate-800/50 hover:border-blue-500/30 group scroll-animate"
-              >
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mx-auto mb-4 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:rotate-12">
-                    <item.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <p className="text-slate-400 transition-colors duration-300 group-hover:text-slate-300">
-                    {item.text}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* Features Grid */}
       <section id="features" className="py-20 px-6 relative">
@@ -249,22 +232,26 @@ export default function LandingPage() {
               {
                 icon: CheckCircle,
                 title: "Smart Task Management",
-                description: "AI-categorized tasks with priority matrix and calendar integration",
+                description:
+                  "AI-categorized tasks with priority matrix and calendar integration",
               },
               {
                 icon: Timer,
                 title: "Pomodoro Focus Sessions",
-                description: "Built-in timer with session tracking and productivity analytics",
+                description:
+                  "Built-in timer with session tracking and productivity analytics",
               },
               {
                 icon: Brain,
                 title: "Instant Study Materials",
-                description: "Upload PDFs and get AI-generated flashcards and quizzes automatically",
+                description:
+                  "Upload PDFs and get AI-generated flashcards and quizzes automatically",
               },
               {
                 icon: BarChart3,
                 title: "Progress Analytics",
-                description: "Track focus hours, completion rates, and study patterns over time",
+                description:
+                  "Track focus hours, completion rates, and study patterns over time",
               },
             ].map((feature, index) => (
               <Card
@@ -290,128 +277,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-6 bg-slate-900/50 relative">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-slate-100 transition-all duration-500 ease-in-out hover:scale-[1.02] scroll-animate">
-              Get started in{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                3 simple steps
-              </span>
-            </h2>
-          </div>
-          <div className="grid lg:grid-cols-3 gap-8">
-            {[
-              {
-                number: "01",
-                title: "Add Your Tasks",
-                description: "Create tasks manually or import from your existing calendar",
-                icon: Calendar,
-              },
-              {
-                number: "02",
-                title: "Focus & Study",
-                description: "Use Pomodoro sessions and AI-generated study materials",
-                icon: Zap,
-              },
-              {
-                number: "03",
-                title: "Track Progress",
-                description: "Monitor your productivity patterns and celebrate achievements",
-                icon: TrendingUp,
-              },
-            ].map((step, index) => (
-              <div key={index} className="relative group">
-                <Card className="bg-slate-900/50 border-slate-700/50 shadow-lg h-full backdrop-blur-sm transition-all duration-500 ease-in-out hover:scale-105 hover:bg-slate-800/50 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/10 scroll-animate">
-                  <CardHeader>
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold text-lg transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:rotate-12">
-                        {step.number}
-                      </div>
-                      <step.icon className="h-8 w-8 text-blue-400 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-cyan-400" />
-                    </div>
-                    <CardTitle className="text-xl font-semibold text-slate-100 transition-colors duration-300 group-hover:text-blue-400">
-                      {step.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-slate-400 leading-relaxed transition-colors duration-300 group-hover:text-slate-300">
-                      {step.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-                {index < 2 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500 ease-in-out group-hover:w-12"></div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 px-6 relative">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-slate-100 transition-all duration-500 ease-in-out hover:scale-[1.02] scroll-animate">
-              Trusted by{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                students worldwide
-              </span>
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "Academic Buddy transformed how I study. The AI-generated flashcards save me hours every week!",
-                name: "Sarah Chen",
-                role: "Graduate Student",
-              },
-              {
-                quote: "The focus sessions helped me improve my concentration. I'm getting more done in less time.",
-                name: "Marcus Johnson",
-                role: "High School Student",
-              },
-              {
-                quote:
-                  "Finally, all my study tools in one place. The analytics show me exactly where I need to improve.",
-                name: "Elena Rodriguez",
-                role: "College Student",
-              },
-            ].map((testimonial, index) => (
-              <Card
-                key={index}
-                className="bg-slate-900/50 border-slate-700/50 shadow-lg backdrop-blur-sm transition-all duration-500 ease-in-out hover:scale-105 hover:-translate-y-2 hover:bg-slate-800/50 hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/10 group scroll-animate"
-              >
-                <CardContent className="p-6">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 text-yellow-400 fill-current transition-all duration-300 ease-in-out group-hover:scale-110"
-                        style={{ transitionDelay: `${i * 50}ms` }}
-                      />
-                    ))}
-                  </div>
-                  <blockquote className="text-slate-300 mb-4 leading-relaxed transition-colors duration-300 group-hover:text-slate-200">
-                    "{testimonial.quote}"
-                  </blockquote>
-                  <div>
-                    <div className="font-semibold text-slate-100 transition-colors duration-300 group-hover:text-blue-400">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-slate-400 transition-colors duration-300 group-hover:text-slate-300">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="py-20 px-6 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm relative">
         <div className="container mx-auto max-w-4xl text-center">
@@ -425,20 +290,24 @@ export default function LandingPage() {
             Join thousands of students who've improved their productivity
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 scroll-animate">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 group"
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 bg-transparent hover:text-slate-100 transition-all duration-300 ease-in-out hover:scale-105 hover:border-blue-500/50"
-            >
-              Sign in with Google
-            </Button>
+            <Link href="/signup">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 group"
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-slate-700 text-slate-300 hover:bg-slate-800 bg-transparent hover:text-slate-100 transition-all duration-300 ease-in-out hover:scale-105 hover:border-blue-500/50"
+              >
+                Sign in with Google
+              </Button>
+            </Link>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-slate-500 scroll-animate">
             <div className="flex items-center">
@@ -500,5 +369,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
