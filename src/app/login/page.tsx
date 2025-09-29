@@ -25,7 +25,8 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/dashboard");
+      console.log("User already logged in, redirecting to dashboard");
+      router.replace("/dashboard");
     }
   }, [user, router]);
 
@@ -33,7 +34,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await signIn(email, password);
-      router.push("/dashboard");
+      // Navigation will be handled by the useEffect when user state changes
     } catch (error) {
       // Error is handled by the auth context
     }
@@ -42,7 +43,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      // Navigation will be handled by the useEffect when user state changes
     } catch (error) {
       // Error is handled by the auth context
     }

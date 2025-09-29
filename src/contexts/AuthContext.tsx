@@ -114,6 +114,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(false);
       throw new Error(authError);
     }
+
+    // Don't set loading to false here - let onAuthStateChanged handle it
+    console.log("Sign in successful, waiting for auth state change");
   };
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -131,6 +134,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(false);
       throw new Error(authError);
     }
+
+    // Don't set loading to false here - let onAuthStateChanged handle it
+    console.log("Sign up successful, waiting for auth state change");
   };
 
   const signInWithGoogle = async () => {
@@ -144,6 +150,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(false);
       throw new Error(authError);
     }
+
+    // Don't set loading to false here - let onAuthStateChanged handle it
+    console.log("Google sign in successful, waiting for auth state change");
   };
 
   const signOut = async () => {
