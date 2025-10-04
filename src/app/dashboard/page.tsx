@@ -3,9 +3,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, LogOut, User } from "lucide-react";
+import { Brain, LogOut, User, ListTodo } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { user, dbUser, signOut, loading } = useAuth();
@@ -121,24 +122,38 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Coming Soon Section */}
+          {/* Quick Actions */}
           <Card className="bg-slate-900/50 border-slate-700/50">
             <CardHeader>
-              <CardTitle className="text-slate-100">Coming Soon</CardTitle>
+              <CardTitle className="text-slate-100">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link href="/tasks">
+                  <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 cursor-pointer group hover:scale-105">
+                    <div className="text-center">
+                      <ListTodo className="w-8 h-8 text-cyan-400 mx-auto mb-2 group-hover:scale-110 transition-transform duration-300" />
+                      <p className="text-slate-300 font-medium">Task Management</p>
+                      <p className="text-slate-500 text-xs mt-1">Create and organize tasks</p>
+                    </div>
+                  </div>
+                </Link>
+                
                 {[
-                  "Task Management",
-                  "Pomodoro Timer",
-                  "Study Materials",
-                  "Progress Analytics"
+                  { name: "Pomodoro Timer", desc: "Focus sessions", icon: "⏱️" },
+                  { name: "Study Materials", desc: "Upload & generate", icon: "📚" },
+                  { name: "Progress Analytics", desc: "Track performance", icon: "📊" }
                 ].map((feature, index) => (
                   <div
                     key={index}
-                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 opacity-60"
                   >
-                    <p className="text-slate-300 text-center">{feature}</p>
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{feature.icon}</div>
+                      <p className="text-slate-300 font-medium">{feature.name}</p>
+                      <p className="text-slate-500 text-xs mt-1">{feature.desc}</p>
+                      <p className="text-slate-600 text-xs mt-2">Coming Soon</p>
+                    </div>
                   </div>
                 ))}
               </div>
