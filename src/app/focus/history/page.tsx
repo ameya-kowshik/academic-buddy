@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  ArrowLeft, 
   Timer, 
   BarChart3,
   AlertCircle,
@@ -21,18 +19,16 @@ import {
   Filter,
   X
 } from "lucide-react";
+import AppLayout from "@/components/layout/AppLayout";
 
 // Hooks
-import { useAuth } from "@/hooks/useAuth";
 import { useFocusSessions } from "@/hooks/useFocusSessions";
 import { useTasks } from "@/hooks/useTasks";
 
 // Utils
 import { focusUtils } from "@/lib/focus-utils";
 
-export default function FocusHistoryPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+function FocusHistoryPageContent() {
   
   // Data hooks
   const {
@@ -154,48 +150,20 @@ export default function FocusHistoryPage() {
     }
   };
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, authLoading, router]);
 
-  // Loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <BarChart3 className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/focus"
-              className="inline-flex items-center text-slate-400 hover:text-cyan-400 transition-colors duration-300 group"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-              Back to Focus
-            </Link>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-slate-100">Focus Sessions History</h1>
-                <p className="text-sm text-slate-400">Track your productivity patterns and progress</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
+              <BarChart3 className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-100">Focus Sessions History</h1>
+              <p className="text-sm text-slate-400">Track your productivity patterns and progress</p>
             </div>
           </div>
 
@@ -580,5 +548,13 @@ export default function FocusHistoryPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function FocusHistoryPage() {
+  return (
+    <AppLayout>
+      <FocusHistoryPageContent />
+    </AppLayout>
   );
 }

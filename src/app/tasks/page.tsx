@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Task } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Plus, ListTodo, AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { Plus, ListTodo, AlertCircle } from "lucide-react";
+import AppLayout from "@/components/layout/AppLayout";
 import { useTasks } from "@/hooks/useTasks";
 import TaskForm from "@/components/tasks/TaskForm";
 import TaskList from "@/components/tasks/TaskList";
 
-export default function TasksPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+function TasksPageContent() {
   const {
     tasks,
     loading: tasksLoading,
@@ -29,31 +25,6 @@ export default function TasksPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, authLoading, router]);
-
-  // Don't render if not authenticated
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <ListTodo className="h-5 w-5 text-white" />
-          </div>
-          <p className="text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {
@@ -104,26 +75,17 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center text-slate-400 hover:text-cyan-400 transition-colors duration-300 group"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-              Back to Dashboard
-            </Link>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                <ListTodo className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-slate-100">Task Management</h1>
-                <p className="text-sm text-slate-400">Organize and track your study tasks</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <ListTodo className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-100">Task Management</h1>
+              <p className="text-sm text-slate-400">Organize and track your study tasks</p>
             </div>
           </div>
 
@@ -193,5 +155,13 @@ export default function TasksPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <AppLayout>
+      <TasksPageContent />
+    </AppLayout>
   );
 }

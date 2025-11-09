@@ -1,19 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  ArrowLeft, 
   Timer, 
   Settings, 
-  BarChart3,
   Maximize,
   Minimize,
   AlertCircle
 } from "lucide-react";
+import AppLayout from "@/components/layout/AppLayout";
 
 // Hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -36,9 +33,7 @@ import { focusUtils } from "@/lib/focus-utils";
 
 type TimerMode = 'pomodoro' | 'stopwatch';
 
-export default function FocusPage() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+function FocusPageContent() {
   
   // Data hooks
   const { tasks, loading: tasksLoading } = useTasks();
@@ -70,12 +65,7 @@ export default function FocusPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, authLoading, router]);
+
 
   // Initialize notifications
   useEffect(() => {
@@ -237,57 +227,25 @@ export default function FocusPage() {
     ? pomodoro.getPhaseLabel(pomodoro.phase)
     : stopwatch.getStatusLabel();
 
-  // Loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <Timer className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
-  if (!user) return null;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 ${isFullscreen ? 'p-8' : ''}`}>
-      {/* Header (hidden in fullscreen) */}
+    <div className={`min-h-screen ${isFullscreen ? 'p-8' : ''}`}>
+      {/* Header (only in fullscreen for controls) */}
       {!isFullscreen && (
         <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40">
           <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center text-slate-400 hover:text-cyan-400 transition-colors duration-300 group"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-                Back to Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                  <Timer className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-slate-100">Focus Sessions</h1>
-                  <p className="text-sm text-slate-400">Pomodoro timer and focus tracking</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
+                <Timer className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-slate-100">Focus Sessions</h1>
+                <p className="text-sm text-slate-400">Pomodoro timer and focus tracking</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Link href="/focus/history">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
-                >
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  History
-                </Button>
-              </Link>
-              
               <Button
                 onClick={() => setShowSettings(!showSettings)}
                 variant="outline"
@@ -477,5 +435,13 @@ export default function FocusPage() {
         loading={sessionsLoading}
       />
     </div>
+  );
+}
+
+export default function FocusPage() {
+  return (
+    <AppLayout>
+      <FocusPageContent />
+    </AppLayout>
   );
 }

@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, LogOut, User, ListTodo, Timer, BarChart3 } from "lucide-react";
+import { Brain, LogOut, User, ListTodo, Timer, BarChart3, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -128,7 +128,7 @@ export default function DashboardPage() {
               <CardTitle className="text-slate-100">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Link href="/tasks">
                   <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 cursor-pointer group hover:scale-105 h-full">
                     <div className="text-center">
@@ -148,41 +148,28 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </Link>
-                
-                {[
-                  { name: "Study Materials", desc: "Upload & generate", icon: "📚" },
-                  { name: "Progress Analytics", desc: "Track performance", icon: "📊" }
-                ].map((feature, index) => (
-                  <div
-                    key={index}
-                    className="p-6 bg-slate-800/50 rounded-lg border border-slate-700/50 opacity-60 h-full"
-                  >
-                    <div className="text-center">
-                      <div className="text-2xl mb-3">{feature.icon}</div>
-                      <p className="text-slate-300 font-medium">{feature.name}</p>
-                      <p className="text-slate-500 text-xs mt-1">{feature.desc}</p>
-                      <p className="text-slate-600 text-xs mt-2">Coming Soon</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
 
-              {/* Focus History Quick Access */}
-              <div className="mt-6">
-                <Link href="/focus/history">
-                  <div className="p-4 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 cursor-pointer group hover:scale-105">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                        <BarChart3 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-slate-300 font-medium">Focus Sessions History</p>
-                        <p className="text-slate-500 text-xs">View your productivity patterns and progress</p>
-                      </div>
+                <Link href="/focus/analytics">
+                  <div className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-lg border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 cursor-pointer group hover:scale-105 h-full">
+                    <div className="text-center">
+                      <TrendingUp className="w-8 h-8 text-emerald-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" />
+                      <p className="text-slate-300 font-medium">Focus Analytics</p>
+                      <p className="text-slate-500 text-xs mt-1">Track performance & insights</p>
                     </div>
                   </div>
                 </Link>
+                
+                <div className="p-6 bg-slate-800/50 rounded-lg border border-slate-700/50 opacity-60 h-full">
+                  <div className="text-center">
+                    <div className="text-2xl mb-3">📚</div>
+                    <p className="text-slate-300 font-medium">Study Materials</p>
+                    <p className="text-slate-500 text-xs mt-1">Upload & generate</p>
+                    <p className="text-slate-600 text-xs mt-2">Coming Soon</p>
+                  </div>
+                </div>
               </div>
+
+
             </CardContent>
           </Card>
         </div>

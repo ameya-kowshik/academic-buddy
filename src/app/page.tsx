@@ -22,9 +22,20 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Redirect authenticated users to focus page
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/focus");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -50,6 +61,25 @@ export default function LandingPage() {
       }
     };
   }, []);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Brain className="h-6 w-6 text-white" />
+          </div>
+          <p className="text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render landing page if user is authenticated (will redirect)
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 relative overflow-hidden">
