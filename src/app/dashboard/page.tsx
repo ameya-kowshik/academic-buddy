@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, LogOut, User, ListTodo, Timer } from "lucide-react";
+import { Brain, LogOut, User, ListTodo, Timer, BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -165,6 +165,23 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Focus History Quick Access */}
+              <div className="mt-6">
+                <Link href="/focus/history">
+                  <div className="p-4 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 cursor-pointer group hover:scale-105">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-slate-300 font-medium">Focus Sessions History</p>
+                        <p className="text-slate-500 text-xs">View your productivity patterns and progress</p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               </div>
             </CardContent>
           </Card>

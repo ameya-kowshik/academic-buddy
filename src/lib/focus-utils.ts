@@ -10,11 +10,8 @@ export interface Tag {
   updatedAt: Date;
 }
 
-// Extended PomodoroLog type with new fields
-export interface ExtendedPomodoroLog extends PomodoroLog {
-  sessionType: string;
-  tagId?: string | null;
-}
+// Use PomodoroLog directly since it already includes sessionType and tagId
+export type ExtendedPomodoroLog = PomodoroLog;
 
 // Focus session utility functions
 export const focusUtils = {
