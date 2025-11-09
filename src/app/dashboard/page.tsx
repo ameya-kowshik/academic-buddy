@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, LogOut, User, ListTodo } from "lucide-react";
+import { Brain, LogOut, User, ListTodo, Timer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -130,26 +130,35 @@ export default function DashboardPage() {
             <CardContent>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Link href="/tasks">
-                  <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 cursor-pointer group hover:scale-105">
+                  <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 cursor-pointer group hover:scale-105 h-full">
                     <div className="text-center">
-                      <ListTodo className="w-8 h-8 text-cyan-400 mx-auto mb-2 group-hover:scale-110 transition-transform duration-300" />
+                      <ListTodo className="w-8 h-8 text-cyan-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" />
                       <p className="text-slate-300 font-medium">Task Management</p>
                       <p className="text-slate-500 text-xs mt-1">Create and organize tasks</p>
                     </div>
                   </div>
                 </Link>
+
+                <Link href="/focus">
+                  <div className="p-6 bg-gradient-to-br from-red-500/10 to-orange-500/10 rounded-lg border border-red-500/20 hover:border-red-500/40 transition-all duration-300 cursor-pointer group hover:scale-105 h-full">
+                    <div className="text-center">
+                      <Timer className="w-8 h-8 text-red-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" />
+                      <p className="text-slate-300 font-medium">Focus Sessions</p>
+                      <p className="text-slate-500 text-xs mt-1">Pomodoro & stopwatch timer</p>
+                    </div>
+                  </div>
+                </Link>
                 
                 {[
-                  { name: "Pomodoro Timer", desc: "Focus sessions", icon: "⏱️" },
                   { name: "Study Materials", desc: "Upload & generate", icon: "📚" },
                   { name: "Progress Analytics", desc: "Track performance", icon: "📊" }
                 ].map((feature, index) => (
                   <div
                     key={index}
-                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 opacity-60"
+                    className="p-6 bg-slate-800/50 rounded-lg border border-slate-700/50 opacity-60 h-full"
                   >
                     <div className="text-center">
-                      <div className="text-2xl mb-2">{feature.icon}</div>
+                      <div className="text-2xl mb-3">{feature.icon}</div>
                       <p className="text-slate-300 font-medium">{feature.name}</p>
                       <p className="text-slate-500 text-xs mt-1">{feature.desc}</p>
                       <p className="text-slate-600 text-xs mt-2">Coming Soon</p>

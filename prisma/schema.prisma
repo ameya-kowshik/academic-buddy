@@ -27,6 +27,7 @@ model User {
   // Relations
   tasks           Task[]
   pomodoroLogs    PomodoroLog[]
+  tags            Tag[]
   flashcards      Flashcard[]
   quizzes         Quiz[]
   analytics       Analytics[]
@@ -59,12 +60,30 @@ model Task {
   @@map("tasks")
 }
 
+// User-defined tags for categorizing sessions
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String // Hex color code
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pomodoroLogs PomodoroLog[]
+
+  @@unique([userId, name]) // Prevent duplicate tag names per user
+  @@map("tags")
+}
+
 // Pomodoro session tracking
 model PomodoroLog {
   id          String    @id @default(cuid())
   duration    Int // in minutes
   focusScore  Int? // 1-10 rating
   notes       String?
+  sessionType String    @default("POMODORO") // POMODORO or STOPWATCH
   startedAt   DateTime  @default(now())
   completedAt DateTime?
 
@@ -73,6 +92,8 @@ model PomodoroLog {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   taskId String?
   task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  tagId  String?
+  tag    Tag?    @relation(fields: [tagId], references: [id], onDelete: SetNull)
 
   @@map("pomodoro_logs")
 }

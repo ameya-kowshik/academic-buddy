@@ -1,0 +1,190 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+export interface StopwatchState {
+  timeElapsed: number; // seconds
+  isRunning: boolean;
+  isPaused: boolean;
+  startTime: Date | null;
+  maxDuration: number; // seconds (3 hours = 10800 seconds)
+}
+
+const MAX_DURATION = 3 * 60 * 60; // 3 hours in seconds
+
+export function useStopwatch() {
+  const [state, setState] = useState<StopwatchState>({
+    timeElapsed: 0,
+    isRunning: false,
+    isPaused: false,
+    startTime: null,
+    maxDuration: MAX_DURATION,
+  });
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onMaxTimeReachedRef = useRef<(() => void) | null>(null);
+  const onSessionCompleteRef = useRef<((duration: number) => void) | null>(null);
+
+  // Timer logic
+  useEffect(() => {
+    if (state.isRunning && !state.isPaused) {
+      intervalRef.current = setInterval(() => {
+        setState(prev => {
+          const newTimeElapsed = prev.timeElapsed + 1;
+
+          // Check if max time reached
+          if (newTimeElapsed >= prev.maxDuration) {
+            // Auto-stop at max duration
+            if (onMaxTimeReachedRef.current) {
+              onMaxTimeReachedRef.current();
+            }
+
+            return {
+              ...prev,
+              timeElapsed: prev.maxDuration,
+              isRunning: false,
+              isPaused: false,
+            };
+          }
+
+          return {
+            ...prev,
+            timeElapsed: newTimeElapsed,
+          };
+        });
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [state.isRunning, state.isPaused]);
+
+  const start = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isRunning: true,
+      isPaused: false,
+      startTime: prev.startTime || new Date(),
+    }));
+  }, []);
+
+  const pause = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isRunning: false,
+      isPaused: true,
+    }));
+  }, []);
+
+  const stop = useCallback(() => {
+    setState(prev => {
+      // Notify session completion if there was actual time elapsed
+      if (prev.timeElapsed > 0 && onSessionCompleteRef.current) {
+        onSessionCompleteRef.current(Math.floor(prev.timeElapsed / 60)); // Convert to minutes
+      }
+
+      return {
+        ...prev,
+        timeElapsed: 0,
+        isRunning: false,
+        isPaused: false,
+        startTime: null,
+      };
+    });
+  }, []);
+
+  const reset = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      timeElapsed: 0,
+      isRunning: false,
+      isPaused: false,
+      startTime: null,
+    }));
+  }, []);
+
+  const setOnMaxTimeReached = useCallback((callback: () => void) => {
+    onMaxTimeReachedRef.current = callback;
+  }, []);
+
+  const setOnSessionComplete = useCallback((callback: (duration: number) => void) => {
+    onSessionCompleteRef.current = callback;
+  }, []);
+
+  const formatTime = useCallback((seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  const getProgress = useCallback(() => {
+    return (state.timeElapsed / state.maxDuration) * 100;
+  }, [state.timeElapsed, state.maxDuration]);
+
+  const getTimeRemaining = useCallback(() => {
+    return state.maxDuration - state.timeElapsed;
+  }, [state.timeElapsed, state.maxDuration]);
+
+  const isNearMaxTime = useCallback(() => {
+    const remaining = getTimeRemaining();
+    return remaining <= 300; // 5 minutes warning
+  }, [getTimeRemaining]);
+
+  const getStatusColor = useCallback(() => {
+    if (!state.isRunning && state.timeElapsed === 0) return '#64748b'; // slate - idle
+    if (state.isPaused) return '#f59e0b'; // amber - paused
+    if (isNearMaxTime()) return '#ef4444'; // red - near max time
+    if (state.isRunning) return '#22c55e'; // green - running
+    return '#64748b'; // slate - stopped
+  }, [state.isRunning, state.isPaused, state.timeElapsed, isNearMaxTime]);
+
+  const getStatusLabel = useCallback(() => {
+    if (!state.isRunning && state.timeElapsed === 0) return 'Ready to Start';
+    if (state.isPaused) return 'Paused';
+    if (isNearMaxTime()) return 'Near Max Time';
+    if (state.isRunning) return 'Focus Session Active';
+    return 'Session Stopped';
+  }, [state.isRunning, state.isPaused, state.timeElapsed, isNearMaxTime]);
+
+  const getStatusDescription = useCallback(() => {
+    if (!state.isRunning && state.timeElapsed === 0) return 'Click start when you\'re ready to focus';
+    if (state.isPaused) return 'Session paused - click resume to continue';
+    if (isNearMaxTime()) return 'Approaching 3-hour limit - consider taking a break';
+    if (state.isRunning) return 'Stay focused! You\'re doing great';
+    return 'Session completed - great work!';
+  }, [state.isRunning, state.isPaused, state.timeElapsed, isNearMaxTime]);
+
+  return {
+    ...state,
+    start,
+    pause,
+    stop,
+    reset,
+    setOnMaxTimeReached,
+    setOnSessionComplete,
+    formatTime,
+    getProgress,
+    getTimeRemaining,
+    isNearMaxTime,
+    getStatusColor,
+    getStatusLabel,
+    getStatusDescription,
+    // Utility methods
+    canStart: !state.isRunning && state.timeElapsed < state.maxDuration,
+    canPause: state.isRunning,
+    canResume: state.isPaused,
+    canStop: state.isRunning || state.isPaused || state.timeElapsed > 0,
+    hasTimeElapsed: state.timeElapsed > 0,
+  };
+}
