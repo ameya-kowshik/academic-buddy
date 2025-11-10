@@ -67,16 +67,7 @@ function FocusAnalyticsPageContent() {
               </Button>
             </Link>
             
-            <Link href="/focus/history">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
-              >
-                <BarChart3 className="w-4 h-4 mr-1" />
-                Session List
-              </Button>
-            </Link>
+
           </div>
         </div>
       </header>

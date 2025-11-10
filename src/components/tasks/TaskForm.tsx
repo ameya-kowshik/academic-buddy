@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Plus, X } from "lucide-react";
-import { Task, Priority } from "@prisma/client";
+import { Task } from "@/hooks/useProjects";
 
 interface TaskFormProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;
@@ -15,6 +15,8 @@ interface TaskFormProps {
   initialData?: Partial<Task>;
   isEditing?: boolean;
   loading?: boolean;
+  projects?: Array<{id: string, title: string, color?: string, icon?: string}>;
+  selectedProjectId?: string;
 }
 
 export default function TaskForm({ 
@@ -22,18 +24,19 @@ export default function TaskForm({
   onCancel, 
   initialData, 
   isEditing = false, 
-  loading = false 
+  loading = false,
+  projects = [],
+  selectedProjectId
 }: TaskFormProps) {
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
-    priority: initialData?.priority || "MEDIUM" as Priority,
+    priority: initialData?.priority || "MEDIUM" as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
     dueDate: initialData?.dueDate 
       ? new Date(initialData.dueDate).toISOString().slice(0, 16)
       : "",
     tags: initialData?.tags || [],
-    isRecurring: initialData?.isRecurring || false,
-    recurringPattern: initialData?.recurringPattern || ""
+    projectId: selectedProjectId || initialData?.projectId || ""
   });
 
   const [newTag, setNewTag] = useState("");
@@ -52,8 +55,9 @@ export default function TaskForm({
       const taskData = {
         ...formData,
         title: formData.title.trim(),
-        description: formData.description.trim() || null,
-        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+        description: formData.description.trim() || undefined,
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
+        projectId: formData.projectId || undefined,
       };
 
       await onSubmit(taskData);
@@ -66,8 +70,7 @@ export default function TaskForm({
           priority: "MEDIUM",
           dueDate: "",
           tags: [],
-          isRecurring: false,
-          recurringPattern: ""
+          projectId: selectedProjectId || ""
         });
       }
     } catch (err) {
@@ -147,6 +150,29 @@ export default function TaskForm({
             />
           </div>
 
+          {/* Project Selection */}
+          {projects.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="project" className="text-slate-300">
+                Project
+              </Label>
+              <select
+                id="project"
+                value={formData.projectId}
+                onChange={(e) => setFormData(prev => ({ ...prev, projectId: e.target.value }))}
+                disabled={loading}
+                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-md text-white focus:border-cyan-500 focus:ring-cyan-500/20 focus:outline-none"
+              >
+                <option value="">No Project</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.icon} {project.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Priority and Due Date */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -156,7 +182,7 @@ export default function TaskForm({
               <select
                 id="priority"
                 value={formData.priority}
-                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as Priority }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' }))}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-md text-white focus:border-cyan-500 focus:ring-cyan-500/20 focus:outline-none"
               >

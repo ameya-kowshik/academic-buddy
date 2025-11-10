@@ -12,11 +12,14 @@ export default function DashboardPage() {
   const { user, dbUser, signOut, loading } = useAuth();
   const router = useRouter();
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated, or to focus if authenticated
   useEffect(() => {
     if (!loading && !user) {
       console.log("No user found, redirecting to login");
       router.replace("/login");
+    } else if (!loading && user) {
+      console.log("User found, redirecting to focus page");
+      router.replace("/focus");
     }
   }, [user, loading, router]);
 

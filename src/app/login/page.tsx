@@ -25,8 +25,8 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      console.log("User already logged in, redirecting to dashboard");
-      router.replace("/dashboard");
+      console.log("User already logged in, redirecting to focus");
+      router.replace("/focus");
     }
   }, [user, router]);
 

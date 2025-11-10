@@ -46,17 +46,10 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       gradient: "from-emerald-500 to-teal-500"
     },
     {
-      name: "Session History",
-      href: "/focus/history",
-      icon: BarChart3,
-      description: "Past Sessions",
-      gradient: "from-purple-500 to-indigo-500"
-    },
-    {
-      name: "Tasks",
-      href: "/tasks",
+      name: "Projects",
+      href: "/projects",
       icon: ListTodo,
-      description: "Task Management",
+      description: "Project Management",
       gradient: "from-cyan-500 to-blue-500"
     }
   ];
