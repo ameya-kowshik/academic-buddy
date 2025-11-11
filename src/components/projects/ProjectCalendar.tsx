@@ -154,7 +154,7 @@ export default function ProjectCalendar({
                   onClick={goToPreviousMonth}
                   variant="ghost"
                   size="sm"
-                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 hover:text-cyan-400 transition-all duration-300"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -162,7 +162,7 @@ export default function ProjectCalendar({
                   onClick={goToToday}
                   variant="ghost"
                   size="sm"
-                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 px-3"
+                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 hover:text-cyan-400 px-3 transition-all duration-300"
                 >
                   Today
                 </Button>
@@ -170,7 +170,7 @@ export default function ProjectCalendar({
                   onClick={goToNextMonth}
                   variant="ghost"
                   size="sm"
-                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                  className="text-slate-400 hover:text-slate-100 hover:bg-slate-800 hover:text-cyan-400 transition-all duration-300"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -203,7 +203,7 @@ export default function ProjectCalendar({
               <Button
                 onClick={() => onCreateProject?.({})}
                 size="sm"
-                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white"
+                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add Event
@@ -403,7 +403,11 @@ export default function ProjectCalendar({
               <div className="flex space-x-2 pt-4">
                 <Button
                   onClick={() => {
-                    // Handle edit action
+                    if (selectedEvent.type === 'project' && selectedEvent.project) {
+                      onUpdateProject?.(selectedEvent.project.id, {});
+                    } else if (selectedEvent.type === 'task' && selectedEvent.task) {
+                      onUpdateTask?.(selectedEvent.task.id, {});
+                    }
                     setSelectedEvent(null);
                   }}
                   className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500"
@@ -411,9 +415,34 @@ export default function ProjectCalendar({
                   Edit
                 </Button>
                 <Button
+                  onClick={async () => {
+                    const itemType = selectedEvent.type;
+                    const confirmMessage = `Are you sure you want to delete this ${itemType}?${
+                      itemType === 'project' ? ' This will also delete all associated tasks.' : ''
+                    }`;
+                    
+                    if (window.confirm(confirmMessage)) {
+                      try {
+                        if (selectedEvent.type === 'project' && selectedEvent.project) {
+                          await onDeleteProject?.(selectedEvent.project.id);
+                        } else if (selectedEvent.type === 'task' && selectedEvent.task) {
+                          await onDeleteTask?.(selectedEvent.task.id);
+                        }
+                        setSelectedEvent(null);
+                      } catch (error) {
+                        console.error(`Failed to delete ${itemType}:`, error);
+                      }
+                    }
+                  }}
+                  variant="outline"
+                  className="border-red-600 text-red-400 hover:bg-red-500/10 hover:border-red-500 transition-all duration-300"
+                >
+                  Delete
+                </Button>
+                <Button
                   onClick={() => setSelectedEvent(null)}
                   variant="outline"
-                  className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800"
                 >
                   Close
                 </Button>

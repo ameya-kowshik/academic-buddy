@@ -60,7 +60,7 @@ function FocusAnalyticsPageContent() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+                className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 New Session

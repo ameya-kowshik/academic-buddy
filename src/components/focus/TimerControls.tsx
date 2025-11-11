@@ -135,7 +135,7 @@ export default function TimerControls({
             disabled={loading}
             size="sm"
             variant="outline"
-            className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300 disabled:opacity-50"
+            className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
           >
             <RotateCcw className="w-4 h-4 mr-1" />
             Reset
@@ -149,7 +149,7 @@ export default function TimerControls({
             disabled={loading}
             size="sm"
             variant="outline"
-            className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300 disabled:opacity-50"
+            className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
           >
             <SkipForward className="w-4 h-4 mr-1" />
             Skip
@@ -162,10 +162,10 @@ export default function TimerControls({
           disabled={loading}
           size="sm"
           variant="outline"
-          className={`bg-slate-900/50 border-slate-700 transition-all duration-300 disabled:opacity-50 ${
+          className={`bg-slate-800/40 border-slate-600/50 transition-all duration-300 disabled:opacity-50 ${
             soundEnabled 
               ? 'text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50' 
-              : 'text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600'
+              : 'text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50'
           }`}
         >
           {soundEnabled ? (
@@ -181,10 +181,10 @@ export default function TimerControls({
           disabled={loading}
           size="sm"
           variant="outline"
-          className={`bg-slate-900/50 border-slate-700 transition-all duration-300 disabled:opacity-50 ${
+          className={`bg-slate-800/40 border-slate-600/50 transition-all duration-300 disabled:opacity-50 ${
             notificationsEnabled 
               ? 'text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50' 
-              : 'text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600'
+              : 'text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50'
           }`}
         >
           {notificationsEnabled ? (
@@ -201,7 +201,7 @@ export default function TimerControls({
             disabled={loading}
             size="sm"
             variant="outline"
-            className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300 disabled:opacity-50"
+            className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
           >
             {isFullscreen ? (
               <Minimize className="w-4 h-4" />

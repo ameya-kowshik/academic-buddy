@@ -96,7 +96,7 @@ export default function SessionCompleteModal({
               onClick={onClose}
               variant="ghost"
               size="sm"
-              className="text-slate-400 hover:text-slate-300 p-1"
+              className="text-slate-400 hover:text-slate-300 hover:bg-slate-800/50 p-1 transition-all duration-300"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -198,7 +198,7 @@ export default function SessionCompleteModal({
               onClick={handleSkip}
               disabled={saving || loading}
               variant="outline"
-              className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300 disabled:opacity-50"
+              className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
             >
               Skip
             </Button>

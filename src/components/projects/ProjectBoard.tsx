@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,15 @@ import {
   User,
   Timer,
   Target,
-  AlertCircle
+  AlertCircle,
+  Edit,
+  Trash2,
+  Settings,
+  ChevronDown
 } from "lucide-react";
 import { Project, Task } from "@/hooks/useProjects";
 import TaskForm from "../tasks/TaskForm";
+import ProjectForm from "./ProjectForm";
 
 interface ProjectBoardProps {
   projects: Project[];
@@ -39,7 +44,7 @@ const taskStatuses = [
 ];
 
 const priorityColors = {
-  LOW: 'bg-gray-500',
+  LOW: 'bg-slate-500',
   MEDIUM: 'bg-blue-500',
   HIGH: 'bg-orange-500',
   URGENT: 'bg-red-500'
@@ -50,8 +55,11 @@ export default function ProjectBoard({
   tasks,
   loading,
   onCreateProject,
+  onUpdateProject,
+  onDeleteProject,
   onCreateTask,
   onUpdateTask,
+  onDeleteTask,
   searchTerm,
   filters
 }: ProjectBoardProps) {
@@ -62,6 +70,26 @@ export default function ProjectBoard({
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [taskFormStatus, setTaskFormStatus] = useState<string>('TODO');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [showProjectMenu, setShowProjectMenu] = useState<string | null>(null);
+  const [showTaskMenu, setShowTaskMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowProjectMenu(null);
+        setShowTaskMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Filter tasks by selected project and search/filters
   const filteredTasks = tasks.filter(task => {
@@ -139,6 +167,58 @@ export default function ProjectBoard({
     setEditingTask(null);
   };
 
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setShowProjectForm(true);
+    setShowProjectMenu(null);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (window.confirm('Are you sure you want to delete this project? This will also delete all associated tasks.')) {
+      try {
+        await onDeleteProject(projectId);
+        // If we deleted the selected project, select another one or null
+        if (selectedProject === projectId) {
+          const remainingProjects = projects.filter(p => p.id !== projectId);
+          setSelectedProject(remainingProjects.length > 0 ? remainingProjects[0].id : null);
+        }
+        setShowProjectMenu(null);
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await onDeleteTask(taskId);
+        setShowTaskMenu(null);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+      }
+    }
+  };
+
+  const handleProjectSubmit = async (projectData: Partial<Project>) => {
+    try {
+      if (editingProject) {
+        await onUpdateProject(editingProject.id, projectData);
+      } else {
+        await onCreateProject(projectData);
+      }
+      setShowProjectForm(false);
+      setEditingProject(null);
+    } catch (error) {
+      console.error('Failed to save project:', error);
+    }
+  };
+
+  const handleProjectCancel = () => {
+    setShowProjectForm(false);
+    setEditingProject(null);
+  };
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -164,32 +244,95 @@ export default function ProjectBoard({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={menuRef}>
       {/* Project Selector */}
       {projects.length > 0 && (
-        <div className="flex items-center space-x-4 overflow-x-auto pb-2">
-          <span className="text-sm font-medium text-slate-400 whitespace-nowrap" title="Select a project to view and manage its tasks">
-            Project:
-          </span>
-          {projects.map((project) => (
-            <Button
-              key={project.id}
-              onClick={() => setSelectedProject(project.id)}
-              variant={selectedProject === project.id ? "default" : "outline"}
-              size="sm"
-              className={`whitespace-nowrap ${
-                selectedProject === project.id
-                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white'
-                  : 'bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              {project.icon && <span className="mr-2">{project.icon}</span>}
-              {project.title}
-              <Badge variant="secondary" className="ml-2 bg-slate-700 text-slate-300">
-                {project._count?.tasks || 0}
-              </Badge>
-            </Button>
-          ))}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-slate-400" title="Select a project to view and manage its tasks">
+              Project:
+            </span>
+            <div className="flex items-center space-x-2 flex-wrap">
+              {projects.map((project) => (
+                <div key={project.id} className="relative flex items-center">
+                  <Button
+                    onClick={() => setSelectedProject(project.id)}
+                    variant={selectedProject === project.id ? "default" : "outline"}
+                    size="sm"
+                    className={`${
+                      selectedProject === project.id
+                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25'
+                        : 'bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50'
+                    } transition-all duration-300`}
+                  >
+                    {project.icon && <span className="mr-2">{project.icon}</span>}
+                    {project.title}
+                    <Badge variant="secondary" className="ml-2 bg-slate-700 text-slate-300">
+                      {project._count?.tasks || 0}
+                    </Badge>
+                  </Button>
+                  
+                  {/* Project Menu */}
+                  <div className="relative ml-1">
+                    <Button
+                      onClick={() => setShowProjectMenu(showProjectMenu === project.id ? null : project.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-all duration-300"
+                      title="Project options"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                    
+                    {showProjectMenu === project.id && (
+                      <div className="absolute top-full right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-20 min-w-[160px]">
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setSelectedProject(project.id);
+                              setShowProjectMenu(null);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 flex items-center"
+                          >
+                            <Target className="w-3 h-3 mr-2" />
+                            View Tasks
+                          </button>
+                          <button
+                            onClick={() => handleEditProject(project)}
+                            className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 flex items-center"
+                          >
+                            <Edit className="w-3 h-3 mr-2" />
+                            Edit Project
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center"
+                          >
+                            <Trash2 className="w-3 h-3 mr-2" />
+                            Delete Project
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Add Project Button */}
+          <Button
+            onClick={() => {
+              setEditingProject(null);
+              setShowProjectForm(true);
+            }}
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.02]"
+            size="sm"
+            title="Create new project"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            New Project
+          </Button>
         </div>
       )}
 
@@ -242,15 +385,41 @@ export default function ProjectBoard({
                         <h4 className="font-medium text-slate-100 text-sm leading-tight">
                           {task.title}
                         </h4>
-                        <Button
-                          onClick={() => handleEditTask(task)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Edit task"
-                        >
-                          <MoreHorizontal className="w-3 h-3 text-slate-400" />
-                        </Button>
+                        <div className="relative">
+                          <Button
+                            onClick={() => setShowTaskMenu(showTaskMenu === task.id ? null : task.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Task options"
+                          >
+                            <MoreHorizontal className="w-3 h-3 text-slate-400" />
+                          </Button>
+                          
+                          {showTaskMenu === task.id && (
+                            <div className="absolute top-full right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 min-w-[120px]">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => {
+                                    handleEditTask(task);
+                                    setShowTaskMenu(null);
+                                  }}
+                                  className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 flex items-center"
+                                >
+                                  <Edit className="w-3 h-3 mr-2" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-slate-700 flex items-center"
+                                >
+                                  <Trash2 className="w-3 h-3 mr-2" />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Task Description */}
@@ -415,6 +584,16 @@ export default function ProjectBoard({
             />
           </div>
         </div>
+      )}
+
+      {/* Project Form Modal */}
+      {showProjectForm && (
+        <ProjectForm
+          project={editingProject || undefined}
+          onSubmit={handleProjectSubmit}
+          onCancel={handleProjectCancel}
+          loading={loading}
+        />
       )}
     </div>
   );

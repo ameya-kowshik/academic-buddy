@@ -138,7 +138,7 @@ export default function TagManager({
               onClick={onClose}
               variant="ghost"
               size="sm"
-              className="text-slate-400 hover:text-slate-300"
+              className="text-slate-400 hover:text-slate-300 hover:bg-slate-800/50 transition-all duration-300"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -270,7 +270,7 @@ export default function TagManager({
                             disabled={actionLoading?.startsWith("update") || loading}
                             size="sm"
                             variant="outline"
-                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-500 transition-all duration-300"
                           >
                             <X className="w-3 h-3" />
                           </Button>
@@ -296,7 +296,7 @@ export default function TagManager({
                             disabled={actionLoading !== null || loading}
                             size="sm"
                             variant="outline"
-                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
                           >
                             <Edit className="w-3 h-3" />
                           </Button>
@@ -305,7 +305,7 @@ export default function TagManager({
                             disabled={actionLoading !== null || loading}
                             size="sm"
                             variant="outline"
-                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-300"
+                            className="bg-slate-900/50 border-slate-600 text-slate-400 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
                           >
                             {actionLoading === `delete-${tag.id}` ? (
                               "..."

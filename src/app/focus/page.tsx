@@ -250,7 +250,7 @@ function FocusPageContent() {
                 onClick={() => setShowSettings(!showSettings)}
                 variant="outline"
                 size="sm"
-                className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+                className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
               >
                 <Settings className="w-4 h-4 mr-1" />
                 Settings
@@ -260,7 +260,7 @@ function FocusPageContent() {
                 onClick={toggleFullscreen}
                 variant="outline"
                 size="sm"
-                className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+                className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
               >
                 {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
               </Button>
@@ -284,7 +284,7 @@ function FocusPageContent() {
                   onClick={clearError}
                   variant="ghost"
                   size="sm"
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300"
                 >
                   Dismiss
                 </Button>
@@ -306,7 +306,7 @@ function FocusPageContent() {
                       variant={timerMode === 'pomodoro' ? 'default' : 'outline'}
                       className={timerMode === 'pomodoro' 
                         ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white shadow-lg shadow-red-500/25 transition-all duration-300 transform hover:scale-105'
-                        : 'bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300'
+                        : 'bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300'
                       }
                     >
                       Pomodoro Timer
@@ -316,7 +316,7 @@ function FocusPageContent() {
                       variant={timerMode === 'stopwatch' ? 'default' : 'outline'}
                       className={timerMode === 'stopwatch'
                         ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg shadow-green-500/25 transition-all duration-300 transform hover:scale-105'
-                        : 'bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300'
+                        : 'bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300'
                       }
                     >
                       Stopwatch

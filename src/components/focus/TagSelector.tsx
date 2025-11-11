@@ -41,7 +41,7 @@ export default function TagSelector({
             disabled={loading}
             size="sm"
             variant="outline"
-            className="bg-slate-900/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
+            className="bg-slate-900/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
           >
             <Settings className="w-3 h-3 mr-1" />
             Manage
@@ -108,7 +108,7 @@ export default function TagSelector({
               disabled={loading}
               variant="ghost"
               size="sm"
-              className="w-full text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
+              className="w-full text-slate-400 hover:text-cyan-400 hover:bg-slate-800/50 transition-all duration-300"
             >
               {showAll ? `Show Less` : `Show ${tags.length - 6} More`}
             </Button>

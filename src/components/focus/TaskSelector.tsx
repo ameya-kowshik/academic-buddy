@@ -8,12 +8,10 @@ import {
   Search, 
   CheckSquare, 
   Clock, 
-  AlertTriangle,
-  ExternalLink
+  AlertTriangle
 } from "lucide-react";
 import { Task } from "@prisma/client";
 import { taskUtils } from "@/lib/tasks";
-import Link from "next/link";
 
 interface TaskSelectorProps {
   tasks: Task[];
@@ -37,17 +35,17 @@ export default function TaskSelector({
     task.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Show active tasks first (pending, in progress), then completed
+  // Show active tasks first (todo, in progress), then completed
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    const statusOrder = { PENDING: 1, IN_PROGRESS: 2, COMPLETED: 3, CANCELLED: 4 };
+    const statusOrder = { TODO: 1, IN_PROGRESS: 2, REVIEW: 3, DONE: 4, CANCELLED: 5 };
     const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
     
     // First by status
-    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    const statusDiff = (statusOrder[a.status as keyof typeof statusOrder] || 0) - (statusOrder[b.status as keyof typeof statusOrder] || 0);
     if (statusDiff !== 0) return statusDiff;
     
     // Then by priority
-    const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+    const priorityDiff = (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
     if (priorityDiff !== 0) return priorityDiff;
     
     // Finally by due date
@@ -65,15 +63,17 @@ export default function TaskSelector({
   const hasMoreTasks = sortedTasks.length > 5;
 
   const getTaskIcon = (task: Task) => {
-    if (task.status === "COMPLETED") return "✅";
+    if (task.status === "DONE") return "✅";
     if (task.status === "IN_PROGRESS") return "⏳";
+    if (task.status === "REVIEW") return "👀";
     if (taskUtils.isOverdue(task)) return "⚠️";
     return "📝";
   };
 
   const getTaskStatusColor = (task: Task) => {
-    if (task.status === "COMPLETED") return "text-green-400";
+    if (task.status === "DONE") return "text-green-400";
     if (task.status === "IN_PROGRESS") return "text-blue-400";
+    if (task.status === "REVIEW") return "text-yellow-400";
     if (taskUtils.isOverdue(task)) return "text-red-400";
     return "text-slate-400";
   };
@@ -81,22 +81,9 @@ export default function TaskSelector({
   return (
     <Card className="bg-slate-900/50 border-slate-700/50">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <CheckSquare className="w-4 h-4 text-slate-400" />
-            <h3 className="text-sm font-medium text-slate-300">Link to Task (Optional)</h3>
-          </div>
-          
-          <Link href="/tasks">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-slate-900/50 border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-600 transition-all duration-300"
-            >
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Manage
-            </Button>
-          </Link>
+        <div className="flex items-center space-x-2 mb-4">
+          <CheckSquare className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-medium text-slate-300">Link to Task (Optional)</h3>
         </div>
 
         <div className="space-y-3">
@@ -202,7 +189,7 @@ export default function TaskSelector({
               disabled={loading}
               variant="ghost"
               size="sm"
-              className="w-full text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
+              className="w-full text-slate-400 hover:text-cyan-400 hover:bg-slate-800/50 transition-all duration-300"
             >
               {showAll ? `Show Less` : `Show ${sortedTasks.length - 5} More`}
             </Button>

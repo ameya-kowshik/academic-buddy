@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +41,7 @@ interface ProjectTableProps {
 
 type SortField = 'title' | 'status' | 'priority' | 'dueDate' | 'progress' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
-type ViewMode = 'projects' | 'tasks' | 'both';
+type ViewMode = 'projects' | 'tasks';
 
 const priorityColors = {
   LOW: 'bg-slate-500',
@@ -79,21 +79,37 @@ export default function ProjectTable({
 }: ProjectTableProps) {
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [viewMode, setViewMode] = useState<ViewMode>('both');
+  const [viewMode, setViewMode] = useState<ViewMode>('projects');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [showItemMenu, setShowItemMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowItemMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Filter and sort data
   const filteredData = useMemo(() => {
     let items: (Project | Task)[] = [];
 
-    // Add projects if viewing projects or both
-    if (viewMode === 'projects' || viewMode === 'both') {
+    // Add projects if viewing projects
+    if (viewMode === 'projects') {
       items = [...items, ...projects];
     }
 
-    // Add tasks if viewing tasks or both
-    if (viewMode === 'tasks' || viewMode === 'both') {
+    // Add tasks if viewing tasks
+    if (viewMode === 'tasks') {
       items = [...items, ...tasks];
     }
 
@@ -236,6 +252,32 @@ export default function ProjectTable({
     return 'tasks' in item;
   };
 
+  const handleEditItem = (item: Project | Task) => {
+    // This would open the appropriate form modal
+    console.log('Edit item:', item);
+    setShowItemMenu(null);
+  };
+
+  const handleDeleteItem = async (item: Project | Task) => {
+    const itemType = isProject(item) ? 'project' : 'task';
+    const confirmMessage = `Are you sure you want to delete this ${itemType}?${
+      itemType === 'project' ? ' This will also delete all associated tasks.' : ''
+    }`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        if (isProject(item)) {
+          await onDeleteProject?.(item.id);
+        } else {
+          await onDeleteTask?.(item.id);
+        }
+        setShowItemMenu(null);
+      } catch (error) {
+        console.error(`Failed to delete ${itemType}:`, error);
+      }
+    }
+  };
+
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <Button
       variant="ghost"
@@ -265,7 +307,7 @@ export default function ProjectTable({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={menuRef}>
       {/* Table Header */}
       <Card className="bg-slate-900/50 border-slate-700/50">
         <CardHeader>
@@ -281,7 +323,11 @@ export default function ProjectTable({
                   onClick={() => setViewMode('projects')}
                   variant="ghost"
                   size="sm"
-                  className={`text-xs ${viewMode === 'projects' ? 'bg-slate-700 text-slate-100' : 'text-slate-400'}`}
+                  className={`text-xs transition-all duration-300 ${
+                    viewMode === 'projects' 
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-700'
+                  }`}
                 >
                   Projects
                 </Button>
@@ -289,24 +335,20 @@ export default function ProjectTable({
                   onClick={() => setViewMode('tasks')}
                   variant="ghost"
                   size="sm"
-                  className={`text-xs ${viewMode === 'tasks' ? 'bg-slate-700 text-slate-100' : 'text-slate-400'}`}
+                  className={`text-xs transition-all duration-300 ${
+                    viewMode === 'tasks' 
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-700'
+                  }`}
                 >
                   Tasks
-                </Button>
-                <Button
-                  onClick={() => setViewMode('both')}
-                  variant="ghost"
-                  size="sm"
-                  className={`text-xs ${viewMode === 'both' ? 'bg-slate-700 text-slate-100' : 'text-slate-400'}`}
-                >
-                  Both
                 </Button>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700"
+                className="bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-cyan-400 hover:border-slate-500 transition-all duration-300"
               >
                 <Download className="w-4 h-4 mr-1" />
                 Export
@@ -315,7 +357,7 @@ export default function ProjectTable({
               <Button
                 onClick={() => onCreateProject?.({})}
                 size="sm"
-                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white"
+                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add Item
@@ -486,13 +528,37 @@ export default function ProjectTable({
                         </span>
                       </td>
                       <td className="p-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-slate-400 hover:text-slate-100"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
+                        <div className="relative">
+                          <Button
+                            onClick={() => setShowItemMenu(showItemMenu === item.id ? null : item.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-400 hover:text-slate-100"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                          
+                          {showItemMenu === item.id && (
+                            <div className="absolute top-full right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg z-10 min-w-[120px]">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => handleEditItem(item)}
+                                  className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 flex items-center"
+                                >
+                                  <Edit className="w-3 h-3 mr-2" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteItem(item)}
+                                  className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-slate-700 flex items-center"
+                                >
+                                  <Trash2 className="w-3 h-3 mr-2" />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -530,17 +596,41 @@ export default function ProjectTable({
               </span>
               <div className="flex items-center space-x-2">
                 <Button
+                  onClick={() => {
+                    // Bulk edit functionality - could open a bulk edit modal
+                    console.log('Bulk edit:', selectedItems);
+                  }}
                   variant="outline"
                   size="sm"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-800"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 hover:border-slate-500 transition-all duration-300"
                 >
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
                 </Button>
                 <Button
+                  onClick={async () => {
+                    if (window.confirm(`Are you sure you want to delete ${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''}?`)) {
+                      try {
+                        // Delete selected items
+                        for (const itemId of selectedItems) {
+                          const item = filteredData.find(i => i.id === itemId);
+                          if (item) {
+                            if (isProject(item)) {
+                              await onDeleteProject?.(item.id);
+                            } else {
+                              await onDeleteTask?.(item.id);
+                            }
+                          }
+                        }
+                        setSelectedItems([]);
+                      } catch (error) {
+                        console.error('Failed to delete items:', error);
+                      }
+                    }
+                  }}
                   variant="outline"
                   size="sm"
-                  className="border-red-600 text-red-400 hover:bg-red-500/10"
+                  className="border-red-600 text-red-400 hover:bg-red-500/10 hover:border-red-500 transition-all duration-300"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
                   Delete

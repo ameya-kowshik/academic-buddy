@@ -62,7 +62,7 @@ export default function TaskItem({
 
   return (
     <Card className={`bg-slate-900/50 border-slate-700/50 transition-all duration-300 hover:bg-slate-800/50 hover:border-slate-600/50 ${
-      task.status === "COMPLETED" ? "opacity-75" : ""
+      task.status === "DONE" ? "opacity-75" : ""
     } ${isOverdue ? "border-red-500/30" : ""}`}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -72,7 +72,7 @@ export default function TaskItem({
             disabled={loading || actionLoading === "toggle"}
             className="mt-1 text-slate-400 hover:text-cyan-400 transition-colors duration-200 disabled:opacity-50"
           >
-            {task.status === "COMPLETED" ? (
+            {task.status === "DONE" ? (
               <CheckCircle className="w-5 h-5 text-green-400" />
             ) : (
               <Circle className="w-5 h-5" />
@@ -84,7 +84,7 @@ export default function TaskItem({
             {/* Title and Priority */}
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className={`font-medium text-slate-100 ${
-                task.status === "COMPLETED" ? "line-through text-slate-400" : ""
+                task.status === "DONE" ? "line-through text-slate-400" : ""
               }`}>
                 {task.title}
               </h3>
@@ -152,7 +152,7 @@ export default function TaskItem({
                 disabled={loading || actionLoading !== null}
                 size="sm"
                 variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-cyan-400 transition-colors duration-200"
+                className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
               >
                 <Edit className="w-3 h-3 mr-1" />
                 Edit
@@ -163,7 +163,7 @@ export default function TaskItem({
                 disabled={loading || actionLoading !== null}
                 size="sm"
                 variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-colors duration-200"
+                className="border-slate-700 text-slate-300 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10"
               >
                 {actionLoading === "delete" ? (
                   "Deleting..."

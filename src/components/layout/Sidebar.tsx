@@ -77,7 +77,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         variant="outline"
         size="sm"
-        className="fixed top-4 left-4 z-50 lg:hidden bg-slate-900/80 border-slate-700 text-slate-300 hover:bg-slate-800 backdrop-blur-sm"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 backdrop-blur-sm transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
       >
         {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
       </Button>
@@ -93,7 +93,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       {/* Sidebar */}
       <aside className={`
         fixed left-0 top-0 h-full bg-slate-950/95 border-r border-slate-800/50 backdrop-blur-sm z-40
-        transition-all duration-300 ease-in-out
+        transition-all duration-300 ease-in-out shadow-xl
         ${isCollapsed ? 'w-16' : 'w-64'}
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${className}
@@ -102,26 +102,46 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
           {/* Header */}
           <div className="p-4 border-b border-slate-800/50">
             <div className="flex items-center justify-between">
-              <div className={`flex items-center space-x-3 transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}>
+              {/* Logo and Title */}
+              <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'justify-center w-full' : 'space-x-3 flex-1'}`}>
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
                 {!isCollapsed && (
-                  <span className="text-lg font-semibold text-slate-100">
+                  <span className="text-lg font-semibold text-slate-100 truncate">
                     Academic Buddy
                   </span>
                 )}
               </div>
-              <Button
-                onClick={() => onToggleCollapse(!isCollapsed)}
-                variant="ghost"
-                size="sm"
-                className="hidden lg:flex text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
-                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                <Menu className="w-4 h-4" />
-              </Button>
+              
+              {/* Collapse/Expand Button */}
+              {!isCollapsed && (
+                <Button
+                  onClick={() => onToggleCollapse(!isCollapsed)}
+                  variant="ghost"
+                  size="sm"
+                  className="hidden lg:flex text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all duration-300 ml-2 flex-shrink-0"
+                  title="Collapse sidebar"
+                >
+                  <Menu className="w-4 h-4" />
+                </Button>
+              )}
             </div>
+            
+            {/* Expand Button for Collapsed State */}
+            {isCollapsed && (
+              <div className="flex justify-center mt-2">
+                <Button
+                  onClick={() => onToggleCollapse(!isCollapsed)}
+                  variant="ghost"
+                  size="sm"
+                  className="hidden lg:flex text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all duration-300 w-8 h-8 p-0"
+                  title="Expand sidebar"
+                >
+                  <Menu className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}

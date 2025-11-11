@@ -50,18 +50,18 @@ export default function TaskList({
 
   // Group tasks by status for better organization
   const groupedTasks = {
-    pending: filteredTasks.filter(task => task.status === "PENDING"),
+    pending: filteredTasks.filter(task => task.status === "TODO"),
     inProgress: filteredTasks.filter(task => task.status === "IN_PROGRESS"),
-    completed: filteredTasks.filter(task => task.status === "COMPLETED"),
+    completed: filteredTasks.filter(task => task.status === "DONE"),
     cancelled: filteredTasks.filter(task => task.status === "CANCELLED")
   };
 
   const getStatusStats = () => {
     const total = tasks.length;
-    const completed = tasks.filter(task => task.status === "COMPLETED").length;
-    const pending = tasks.filter(task => task.status === "PENDING").length;
+    const completed = tasks.filter(task => task.status === "DONE").length;
+    const pending = tasks.filter(task => task.status === "TODO").length;
     const overdue = tasks.filter(task => {
-      if (!task.dueDate || task.status === "COMPLETED") return false;
+      if (!task.dueDate || task.status === "DONE") return false;
       return new Date(task.dueDate) < new Date();
     }).length;
 
@@ -139,7 +139,7 @@ export default function TaskList({
             <Button
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -158,9 +158,10 @@ export default function TaskList({
                     className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-md text-white focus:border-cyan-500 focus:ring-cyan-500/20 focus:outline-none"
                   >
                     <option value="ALL">All Status</option>
-                    <option value="PENDING">Pending</option>
+                    <option value="TODO">To Do</option>
                     <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
+                    <option value="REVIEW">Review</option>
+                    <option value="DONE">Done</option>
                     <option value="CANCELLED">Cancelled</option>
                   </select>
                 </div>

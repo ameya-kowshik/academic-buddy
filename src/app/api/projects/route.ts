@@ -3,9 +3,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Temporary mock data until Prisma client is regenerated
-const mockProjects: any[] = [];
-
 // GET /api/projects - Fetch all projects and tasks for user
 export async function GET(request: NextRequest) {
   try {
@@ -24,13 +21,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Return mock data for now
-    const projects = mockProjects.filter(p => p.userId === user.id);
+    // Fetch projects with task counts
+    const projects = await prisma.project.findMany({
+      where: { userId: user.id },
+      include: {
+        tasks: true,
+        _count: {
+          select: {
+            tasks: true,
+            pomodoroLogs: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
     
-    // Fetch existing tasks
+    // Fetch tasks with project relations
     const tasks = await prisma.task.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' }
+      include: {
+        project: true,
+        subtasks: true,
+        _count: {
+          select: {
+            pomodoroLogs: true,
+            subtasks: true
+          }
+        }
+      },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
 
     return NextResponse.json({ projects, tasks });
@@ -78,30 +100,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
-    // Create mock project
-    const project = {
-      id: 'temp-' + Date.now(),
-      title: title.trim(),
-      description: description?.trim() || null,
-      status,
-      priority,
-      startDate: startDate ? new Date(startDate) : null,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      estimatedHours: estimatedHours ? parseInt(estimatedHours) : null,
-      actualHours: 0,
-      color,
-      icon,
-      isArchived: false,
-      completedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: user.id,
-      tasks: [],
-      _count: { tasks: 0, pomodoroLogs: 0 }
-    };
-
-    // Add to mock storage
-    mockProjects.push(project);
+    // Create project using Prisma
+    const project = await prisma.project.create({
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        status,
+        priority,
+        startDate: startDate ? new Date(startDate) : null,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        estimatedHours: estimatedHours ? parseInt(estimatedHours) : null,
+        color,
+        icon,
+        userId: user.id
+      },
+      include: {
+        tasks: true,
+        _count: {
+          select: {
+            tasks: true,
+            pomodoroLogs: true
+          }
+        }
+      }
+    });
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {

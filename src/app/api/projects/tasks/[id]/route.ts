@@ -62,19 +62,11 @@ export async function PUT(
     if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : [];
     if (order !== undefined) updateData.order = order;
 
-    // Set completion date if status changed to COMPLETED
-    if (status === 'DONE' && existingTask.status !== 'COMPLETED') {
+    // Set completion date if status changed to DONE
+    if (status === 'DONE' && existingTask.status !== 'DONE') {
       updateData.completedAt = new Date();
-    } else if (status !== 'DONE' && existingTask.status === 'COMPLETED') {
+    } else if (status !== 'DONE' && existingTask.status === 'DONE') {
       updateData.completedAt = null;
-    }
-
-    // Map project task statuses to existing task statuses
-    if (updateData.status) {
-      if (updateData.status === 'TODO') updateData.status = 'PENDING';
-      else if (updateData.status === 'DONE') updateData.status = 'COMPLETED';
-      else if (updateData.status === 'IN_PROGRESS') updateData.status = 'IN_PROGRESS';
-      else if (updateData.status === 'REVIEW') updateData.status = 'IN_PROGRESS';
     }
 
     const task = await prisma.task.update({
