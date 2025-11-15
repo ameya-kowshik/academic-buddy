@@ -14,7 +14,6 @@ import AppLayout from "@/components/layout/AppLayout";
 
 // Hooks
 import { useAuth } from "@/hooks/useAuth";
-import { useTasks } from "@/hooks/useTasks";
 import { useFocusSessions } from "@/hooks/useFocusSessions";
 import { usePomodoro, PomodoroSettings } from "@/hooks/usePomodoro";
 import { useStopwatch } from "@/hooks/useStopwatch";
@@ -25,7 +24,6 @@ import TimerControls from "@/components/focus/TimerControls";
 import SessionCompleteModal from "@/components/focus/SessionCompleteModal";
 import TagSelector from "@/components/focus/TagSelector";
 import TagManager from "@/components/focus/TagManager";
-import TaskSelector from "@/components/focus/TaskSelector";
 
 // Utils
 import { audioManager, notificationManager } from "@/lib/audio";
@@ -36,7 +34,6 @@ type TimerMode = 'pomodoro' | 'stopwatch';
 function FocusPageContent() {
   
   // Data hooks
-  const { tasks, loading: tasksLoading } = useTasks();
   const {
     tags,
     createSession,
@@ -54,7 +51,6 @@ function FocusPageContent() {
 
   // UI State
   const [timerMode, setTimerMode] = useState<TimerMode>('pomodoro');
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
@@ -204,7 +200,6 @@ function FocusPageContent() {
         sessionType: sessionData.sessionType,
         focusScore: data.focusScore,
         notes: data.notes,
-        taskId: selectedTaskId || undefined,
         tagId: selectedTagId || undefined,
         startedAt: sessionData.startTime,
         completedAt: sessionData.endTime
@@ -395,14 +390,6 @@ function FocusPageContent() {
           {/* Sidebar (hidden in fullscreen) */}
           {!isFullscreen && (
             <div className="space-y-6">
-              {/* Task Selector */}
-              <TaskSelector
-                tasks={tasks}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
-                loading={tasksLoading}
-              />
-
               {/* Tag Selector */}
               <TagSelector
                 tags={tags}
