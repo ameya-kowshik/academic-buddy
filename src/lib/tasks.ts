@@ -21,13 +21,15 @@ export const taskUtils = {
   // Get status color for UI
   getStatusColor: (status: TaskStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'DONE':
         return 'text-green-400 bg-green-500/10 border-green-500/20';
       case 'IN_PROGRESS':
         return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'REVIEW':
+        return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
       case 'CANCELLED':
         return 'text-red-400 bg-red-500/10 border-red-500/20';
-      case 'PENDING':
+      case 'TODO':
       default:
         return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
     }
@@ -36,13 +38,15 @@ export const taskUtils = {
   // Get status icon
   getStatusIcon: (status: TaskStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'DONE':
         return '✅';
       case 'IN_PROGRESS':
         return '⏳';
+      case 'REVIEW':
+        return '👀';
       case 'CANCELLED':
         return '❌';
-      case 'PENDING':
+      case 'TODO':
       default:
         return '📝';
     }
@@ -50,7 +54,7 @@ export const taskUtils = {
 
   // Check if task is overdue
   isOverdue: (task: Task) => {
-    if (!task.dueDate || task.status === 'COMPLETED') return false;
+    if (!task.dueDate || task.status === 'DONE') return false;
     return new Date(task.dueDate) < new Date();
   },
 
@@ -75,10 +79,10 @@ export const taskUtils = {
   // Sort tasks by priority and due date
   sortTasks: (tasks: Task[]) => {
     const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
-    const statusOrder = { PENDING: 1, IN_PROGRESS: 2, COMPLETED: 3, CANCELLED: 4 };
+    const statusOrder = { TODO: 1, IN_PROGRESS: 2, REVIEW: 3, DONE: 4, CANCELLED: 5 };
 
     return tasks.sort((a, b) => {
-      // First sort by status (pending/in-progress first)
+      // First sort by status (todo/in-progress first)
       const statusDiff = statusOrder[a.status] - statusOrder[b.status];
       if (statusDiff !== 0) return statusDiff;
 

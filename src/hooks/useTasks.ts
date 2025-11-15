@@ -89,7 +89,7 @@ export function useTasks() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    const newStatus = task.status === 'DONE' ? 'TODO' : 'DONE';
     return updateTask(taskId, { status: newStatus });
   };
 
