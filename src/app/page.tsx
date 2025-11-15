@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
+  CheckSquare,
   Timer,
   Brain,
   BarChart3,
