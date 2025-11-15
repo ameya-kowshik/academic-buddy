@@ -44,6 +44,13 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       icon: TrendingUp,
       description: "Productivity Insights",
       gradient: "from-emerald-500 to-teal-500"
+    },
+    {
+      name: "Profile",
+      href: "/profile",
+      icon: User,
+      description: "Account & Settings",
+      gradient: "from-purple-500 to-pink-500"
     }
   ];
 
@@ -207,19 +214,17 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
 
             <div className="space-y-1">
               <div className="relative group">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`w-full text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 ${
-                    isCollapsed ? 'px-2' : 'justify-start'
-                  }`}
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMobileOpen(false)}
+                  className="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all duration-200"
                 >
-                  <Settings className="w-4 h-4" />
-                  {!isCollapsed && <span className="ml-2">Settings</span>}
-                </Button>
+                  <User className="w-4 h-4" />
+                  {!isCollapsed && <span className="ml-2 text-sm">Profile</span>}
+                </Link>
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
-                    Settings
+                    Profile
                   </div>
                 )}
               </div>

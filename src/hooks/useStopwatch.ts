@@ -20,15 +20,24 @@ export function useStopwatch() {
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const pausedElapsedRef = useRef<number>(0);
   const onMaxTimeReachedRef = useRef<(() => void) | null>(null);
   const onSessionCompleteRef = useRef<((duration: number) => void) | null>(null);
 
-  // Timer logic
+  // Timer logic - using actual time tracking to prevent tab switching issues
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+
       intervalRef.current = setInterval(() => {
         setState(prev => {
-          const newTimeElapsed = prev.timeElapsed + 1;
+          // Calculate actual elapsed time to handle tab switching
+          const now = Date.now();
+          const elapsed = Math.floor((now - (startTimeRef.current || now)) / 1000);
+          const newTimeElapsed = pausedElapsedRef.current + elapsed;
 
           // Check if max time reached
           if (newTimeElapsed >= prev.maxDuration) {
@@ -50,11 +59,18 @@ export function useStopwatch() {
             timeElapsed: newTimeElapsed,
           };
         });
-      }, 1000);
+      }, 100); // Check more frequently for smoother updates
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      
+      // Track elapsed time when pausing
+      if (state.isPaused && startTimeRef.current) {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        pausedElapsedRef.current = pausedElapsedRef.current + elapsed;
+        startTimeRef.current = null;
       }
     }
 
@@ -66,6 +82,8 @@ export function useStopwatch() {
   }, [state.isRunning, state.isPaused]);
 
   const start = useCallback(() => {
+    startTimeRef.current = Date.now();
+    
     setState(prev => ({
       ...prev,
       isRunning: true,
@@ -89,6 +107,9 @@ export function useStopwatch() {
         onSessionCompleteRef.current(Math.floor(prev.timeElapsed / 60)); // Convert to minutes
       }
 
+      startTimeRef.current = null;
+      pausedElapsedRef.current = 0;
+
       return {
         ...prev,
         timeElapsed: 0,
@@ -100,6 +121,9 @@ export function useStopwatch() {
   }, []);
 
   const reset = useCallback(() => {
+    startTimeRef.current = null;
+    pausedElapsedRef.current = 0;
+    
     setState(prev => ({
       ...prev,
       timeElapsed: 0,

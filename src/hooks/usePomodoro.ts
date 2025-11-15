@@ -47,6 +47,8 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const pausedTimeRef = useRef<number>(0);
   const onPhaseChangeRef = useRef<((phase: PomodoroPhase) => void) | null>(null);
   const onSessionCompleteRef = useRef<((duration: number) => void) | null>(null);
 
@@ -59,12 +61,20 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
     }));
   }, [settings]);
 
-  // Timer logic
+  // Timer logic - using actual time tracking to prevent tab switching issues
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+
       intervalRef.current = setInterval(() => {
         setState(prev => {
-          const newTimeLeft = prev.timeLeft - 1;
+          // Calculate actual elapsed time to handle tab switching
+          const now = Date.now();
+          const elapsed = Math.floor((now - (startTimeRef.current || now)) / 1000);
+          const totalDuration = getPhaseDuration(prev.phase, settings) * 60;
+          const newTimeLeft = Math.max(0, totalDuration - elapsed - pausedTimeRef.current);
 
           if (newTimeLeft <= 0) {
             // Phase completed
@@ -102,6 +112,10 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
             const newTimeLeft = getPhaseDuration(newPhase, settings) * 60;
             const shouldAutoStart = wasInFocus ? settings.autoStartBreaks : settings.autoStartSessions;
 
+            // Reset timing refs for new phase
+            startTimeRef.current = shouldAutoStart ? Date.now() : null;
+            pausedTimeRef.current = 0;
+
             return {
               ...prev,
               phase: newPhase,
@@ -117,11 +131,17 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
             timeLeft: newTimeLeft,
           };
         });
-      }, 1000);
+      }, 100); // Check more frequently for smoother updates
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      
+      // Track paused time when pausing
+      if (state.isPaused && startTimeRef.current) {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        pausedTimeRef.current = elapsed;
       }
     }
 
@@ -172,6 +192,9 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
   };
 
   const start = useCallback(() => {
+    startTimeRef.current = Date.now();
+    pausedTimeRef.current = 0;
+    
     setState(prev => {
       if (prev.phase === 'idle') {
         return {
@@ -199,6 +222,9 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
   }, []);
 
   const stop = useCallback(() => {
+    startTimeRef.current = null;
+    pausedTimeRef.current = 0;
+    
     setState(prev => ({
       ...prev,
       phase: 'idle',
@@ -209,6 +235,9 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
   }, [settings.focusDuration]);
 
   const reset = useCallback(() => {
+    startTimeRef.current = null;
+    pausedTimeRef.current = 0;
+    
     setState(prev => ({
       ...prev,
       phase: 'idle',
