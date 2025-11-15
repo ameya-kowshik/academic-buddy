@@ -195,6 +195,14 @@ export const focusApi = {
     tagId?: string;
     taskId?: string;
   }) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const searchParams = new URLSearchParams();
     if (params?.limit) searchParams.set('limit', params.limit.toString());
     if (params?.offset) searchParams.set('offset', params.offset.toString());
@@ -205,7 +213,7 @@ export const focusApi = {
 
     const response = await fetch(`/api/focus-sessions?${searchParams}`, {
       headers: {
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       }
     });
     
@@ -224,14 +232,23 @@ export const focusApi = {
     notes?: string;
     taskId?: string;
     tagId?: string;
+    projectId?: string;
     startedAt?: Date;
     completedAt?: Date;
   }) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch('/api/focus-sessions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(sessionData)
     });
@@ -246,9 +263,17 @@ export const focusApi = {
 
   // Get all tags
   getTags: async (firebaseUid: string) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch('/api/tags', {
       headers: {
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       }
     });
     
@@ -261,11 +286,19 @@ export const focusApi = {
 
   // Create new tag
   createTag: async (firebaseUid: string, tagData: { name: string; color: string }) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch('/api/tags', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(tagData)
     });
@@ -280,11 +313,19 @@ export const focusApi = {
 
   // Update tag
   updateTag: async (firebaseUid: string, tagId: string, updates: { name?: string; color?: string }) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch(`/api/tags/${tagId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(updates)
     });
@@ -299,10 +340,18 @@ export const focusApi = {
 
   // Delete tag
   deleteTag: async (firebaseUid: string, tagId: string) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch(`/api/tags/${tagId}`, {
       method: 'DELETE',
       headers: {
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       }
     });
     

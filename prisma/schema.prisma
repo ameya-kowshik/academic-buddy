@@ -35,6 +35,7 @@ model User {
   aiSuggestions   AISuggestion[]
   sourceMaterials SourceMaterial[]
 
+  @@index([firebaseUid])
   @@map("users")
 }
 
@@ -62,6 +63,7 @@ model Project {
   tasks        Task[]
   pomodoroLogs PomodoroLog[]
 
+  @@index([userId, createdAt])
   @@map("projects")
 }
 
@@ -93,6 +95,8 @@ model Task {
   subtasks     Task[]        @relation("TaskSubtasks")
   pomodoroLogs PomodoroLog[]
 
+  @@index([userId, status])
+  @@index([projectId, order])
   @@map("tasks")
 }
 
@@ -133,6 +137,7 @@ model PomodoroLog {
   tagId     String?
   tag       Tag?     @relation(fields: [tagId], references: [id], onDelete: SetNull)
 
+  @@index([userId, startedAt])
   @@map("pomodoro_logs")
 }
 

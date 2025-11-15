@@ -4,6 +4,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -25,9 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${roboto.variable} font-sans`}>
       <body className="antialiased">
-        <AuthProvider>
-          <Suspense>{children}</Suspense>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <Suspense>{children}</Suspense>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

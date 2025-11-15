@@ -1,53 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-// Helper function to get authenticated user from Firebase UID
-async function getAuthenticatedUser(request: NextRequest) {
-  try {
-    const firebaseUid = request.headers.get('x-firebase-uid');
-    
-    if (!firebaseUid) {
-      return null;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { firebaseUid }
-    });
-
-    return user;
-  } catch (error) {
-    console.error('Auth verification error:', error);
-    return null;
-  }
-}
+import { User } from '@prisma/client';
+import { requireAuth } from '@/middleware/auth';
+import { withRateLimit } from '@/middleware/rateLimit';
 
 // Helper function to verify tag ownership
 async function verifyTagOwnership(tagId: string, userId: string) {
-  // Temporarily return mock data until Prisma client is regenerated
-  console.log('Tag ownership verification temporarily disabled - Prisma client needs regeneration');
-  return { 
-    tag: null, 
-    error: 'Tag API temporarily disabled - Prisma client needs regeneration' 
-  };
+  const tag = await prisma.tag.findUnique({
+    where: { id: tagId },
+    select: {
+      id: true,
+      userId: true,
+      name: true,
+      color: true
+    }
+  });
+
+  if (!tag) {
+    return { tag: null, error: 'Tag not found' };
+  }
+
+  if (tag.userId !== userId) {
+    return { tag: null, error: 'Unauthorized - Tag belongs to another user' };
+  }
+
+  return { tag, error: null };
 }
 
 // GET /api/tags/[id] - Get specific tag
-export async function GET(
+export const GET = withRateLimit(requireAuth(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  context: { params?: { id: string } },
+  user: User
+) => {
+  const params = context.params!;
   try {
     console.log('GET /api/tags/[id] called for tag:', params.id);
 
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
-
-    const { tag, error } = await verifyTagOwnership(params.id, user.id);
+    const { error } = await verifyTagOwnership(params.id, user.id);
     if (error) {
       return NextResponse.json(
         { error },
@@ -55,7 +45,24 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ error: 'Tag API temporarily disabled' }, { status: 503 });
+    // Fetch full tag data with usage count
+    const fullTag = await prisma.tag.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            pomodoroLogs: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json(fullTag);
 
   } catch (error) {
     console.error('Error fetching tag:', error);
@@ -67,25 +74,19 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+}), 'read');
 
 // PUT /api/tags/[id] - Update tag
-export async function PUT(
+export const PUT = withRateLimit(requireAuth(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  context: { params?: { id: string } },
+  user: User
+) => {
+  const params = context.params!;
   try {
     console.log('PUT /api/tags/[id] called for tag:', params.id);
 
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
-
-    const { tag, error } = await verifyTagOwnership(params.id, user.id);
+    const { error } = await verifyTagOwnership(params.id, user.id);
     if (error) {
       return NextResponse.json(
         { error },
@@ -113,7 +114,31 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json({ error: 'Tag API temporarily disabled' }, { status: 503 });
+    // Prepare update data
+    const updateData: { name?: string; color?: string } = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (color !== undefined) updateData.color = color.toUpperCase();
+
+    // Update the tag
+    const updatedTag = await prisma.tag.update({
+      where: { id: params.id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            pomodoroLogs: true
+          }
+        }
+      }
+    });
+
+    console.log('Tag updated successfully:', updatedTag.id);
+    return NextResponse.json(updatedTag);
 
   } catch (error) {
     console.error('Error updating tag:', error);
@@ -125,25 +150,19 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+}), 'write');
 
 // DELETE /api/tags/[id] - Delete tag
-export async function DELETE(
+export const DELETE = withRateLimit(requireAuth(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  context: { params?: { id: string } },
+  user: User
+) => {
+  const params = context.params!;
   try {
     console.log('DELETE /api/tags/[id] called for tag:', params.id);
 
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
-
-    const { tag, error } = await verifyTagOwnership(params.id, user.id);
+    const { error } = await verifyTagOwnership(params.id, user.id);
     if (error) {
       return NextResponse.json(
         { error },
@@ -151,7 +170,16 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({ error: 'Tag API temporarily disabled' }, { status: 503 });
+    // Delete the tag
+    await prisma.tag.delete({
+      where: { id: params.id }
+    });
+
+    console.log('Tag deleted successfully:', params.id);
+    return NextResponse.json(
+      { message: 'Tag deleted successfully' },
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error('Error deleting tag:', error);
@@ -163,4 +191,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+}), 'write');

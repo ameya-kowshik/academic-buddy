@@ -2,6 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
+import { auth } from "@/lib/firebase/firebaseConfig";
+
+// Helper function to get auth headers
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) {
+    throw new Error('Not authenticated');
+  }
+  return {
+    'Authorization': `Bearer ${idToken}`,
+    'Content-Type': 'application/json'
+  };
+}
 
 // Types
 export interface Project {
@@ -20,7 +33,7 @@ export interface Project {
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  tasks: Task[];
+  tasks?: Task[]; // Optional - not always included in API responses
   _count?: {
     tasks: number;
     pomodoroLogs?: number;
@@ -64,11 +77,8 @@ export function useProjects() {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/projects', {
-        headers: {
-          'x-firebase-uid': user.uid
-        }
-      });
+      const headers = await getAuthHeaders();
+      const response = await fetch('/api/projects', { headers });
 
       if (!response.ok) {
         throw new Error('Failed to fetch projects');
@@ -89,12 +99,10 @@ export function useProjects() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch('/api/projects', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-firebase-uid': user.uid
-        },
+        headers,
         body: JSON.stringify(projectData)
       });
 
@@ -118,12 +126,10 @@ export function useProjects() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-firebase-uid': user.uid
-        },
+        headers,
         body: JSON.stringify(updates)
       });
 
@@ -147,11 +153,10 @@ export function useProjects() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
-        headers: {
-          'x-firebase-uid': user.uid
-        }
+        headers
       });
 
       if (!response.ok) {
@@ -173,12 +178,10 @@ export function useProjects() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch('/api/projects/tasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-firebase-uid': user.uid
-        },
+        headers,
         body: JSON.stringify(taskData)
       });
 
@@ -212,12 +215,10 @@ export function useProjects() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/projects/tasks/${taskId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-firebase-uid': user.uid
-        },
+        headers,
         body: JSON.stringify(updates)
       });
 
@@ -242,12 +243,11 @@ export function useProjects() {
 
     try {
       const taskToDelete = tasks.find(t => t.id === taskId);
+      const headers = await getAuthHeaders();
       
       const response = await fetch(`/api/projects/tasks/${taskId}`, {
         method: 'DELETE',
-        headers: {
-          'x-firebase-uid': user.uid
-        }
+        headers
       });
 
       if (!response.ok) {

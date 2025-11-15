@@ -103,9 +103,17 @@ export const taskUtils = {
 export const taskApi = {
   // Get all tasks for current user
   getTasks: async (firebaseUid: string) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch('/api/tasks', {
       headers: {
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       }
     });
     
@@ -118,11 +126,19 @@ export const taskApi = {
 
   // Create new task
   createTask: async (firebaseUid: string, taskData: Partial<Task>) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(taskData)
     });
@@ -137,11 +153,19 @@ export const taskApi = {
 
   // Update task
   updateTask: async (firebaseUid: string, taskId: string, updates: Partial<Task>) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(updates)
     });
@@ -156,10 +180,18 @@ export const taskApi = {
 
   // Delete task
   deleteTask: async (firebaseUid: string, taskId: string) => {
+    // Get Firebase ID token for authentication
+    const { auth } = await import('@/lib/firebase/firebaseConfig');
+    const idToken = await auth.currentUser?.getIdToken();
+    
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+    
     const response = await fetch(`/api/tasks/${taskId}`, {
       method: 'DELETE',
       headers: {
-        'x-firebase-uid': firebaseUid
+        'Authorization': `Bearer ${idToken}`
       }
     });
     

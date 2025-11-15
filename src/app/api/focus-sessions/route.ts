@@ -1,38 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-// Helper function to get authenticated user from Firebase UID
-async function getAuthenticatedUser(request: NextRequest) {
-  try {
-    const firebaseUid = request.headers.get('x-firebase-uid');
-    
-    if (!firebaseUid) {
-      return null;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { firebaseUid }
-    });
-
-    return user;
-  } catch (error) {
-    console.error('Auth verification error:', error);
-    return null;
-  }
-}
+import { User } from '@prisma/client';
+import { requireAuth } from '@/middleware/auth';
+import { withValidation } from '@/middleware/validation';
+import { withRateLimit } from '@/middleware/rateLimit';
+import { createFocusSessionSchema } from '@/schemas/focus-session.schema';
 
 // GET /api/focus-sessions - Get all focus sessions for the authenticated user
-export async function GET(request: NextRequest) {
+export const GET = withRateLimit(requireAuth(async (request: NextRequest, context, user: User) => {
   try {
     console.log('GET /api/focus-sessions called');
-
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
 
     // Get query parameters for filtering
     const { searchParams } = new URL(request.url);
@@ -57,10 +34,52 @@ export async function GET(request: NextRequest) {
     if (tagId) whereClause.tagId = tagId;
     if (taskId) whereClause.taskId = taskId;
 
-    // Temporarily return empty data until Prisma client is regenerated
-    const sessions: any[] = [];
-    const totalCount = 0;
-    console.log('Focus sessions API temporarily disabled - Prisma client needs regeneration');
+    // Get total count for pagination
+    const totalCount = await prisma.pomodoroLog.count({
+      where: whereClause
+    });
+
+    // Fetch focus sessions (pomodoroLogs) with related data
+    const sessions = await prisma.pomodoroLog.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        duration: true,
+        sessionType: true,
+        focusScore: true,
+        notes: true,
+        startedAt: true,
+        completedAt: true,
+        taskId: true,
+        tagId: true,
+        projectId: true,
+        task: {
+          select: {
+            id: true,
+            title: true,
+            status: true
+          }
+        },
+        tag: {
+          select: {
+            id: true,
+            name: true,
+            color: true
+          }
+        },
+        project: {
+          select: {
+            id: true,
+            title: true,
+            color: true,
+            icon: true
+          }
+        }
+      },
+      orderBy: { startedAt: 'desc' },
+      take: limit,
+      skip: offset
+    });
 
     console.log(`Found ${sessions.length} focus sessions for user (${totalCount} total)`);
     
@@ -84,106 +103,117 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}), 'read');
 
 // POST /api/focus-sessions - Create a new focus session
-export async function POST(request: NextRequest) {
-  try {
-    console.log('POST /api/focus-sessions called');
+export const POST = withRateLimit(requireAuth(
+  withValidation(createFocusSessionSchema, async (request: NextRequest, context, user: User, validatedData) => {
+    try {
+      console.log('POST /api/focus-sessions called');
+      console.log('Validated data:', validatedData);
 
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
+      const { 
+        duration, 
+        sessionType, 
+        focusScore, 
+        notes, 
+        taskId, 
+        tagId,
+        projectId,
+        startedAt,
+        completedAt 
+      } = validatedData;
 
-    const body = await request.json();
-    console.log('Request body:', body);
+      // Verify task ownership if taskId provided
+      if (taskId) {
+        const task = await prisma.task.findUnique({
+          where: { id: taskId }
+        });
 
-    const { 
-      duration, 
-      sessionType, 
-      focusScore, 
-      notes, 
-      taskId, 
-      tagId,
-      startedAt,
-      completedAt 
-    } = body;
+        if (!task || task.userId !== user.id) {
+          return NextResponse.json(
+            { error: 'Task not found or does not belong to user' },
+            { status: 400 }
+          );
+        }
+      }
 
-    // Validation
-    if (!duration || duration <= 0) {
-      return NextResponse.json(
-        { error: 'Session duration must be greater than 0' },
-        { status: 400 }
-      );
-    }
+      // Verify project ownership if projectId provided
+      if (projectId) {
+        const project = await prisma.project.findUnique({
+          where: { id: projectId }
+        });
 
-    if (duration > 180) { // 3 hours max
-      return NextResponse.json(
-        { error: 'Session duration cannot exceed 3 hours (180 minutes)' },
-        { status: 400 }
-      );
-    }
+        if (!project || project.userId !== user.id) {
+          return NextResponse.json(
+            { error: 'Project not found or does not belong to user' },
+            { status: 400 }
+          );
+        }
+      }
 
-    if (sessionType && !['POMODORO', 'STOPWATCH'].includes(sessionType)) {
-      return NextResponse.json(
-        { error: 'Session type must be either POMODORO or STOPWATCH' },
-        { status: 400 }
-      );
-    }
-
-    if (focusScore && (focusScore < 1 || focusScore > 10)) {
-      return NextResponse.json(
-        { error: 'Focus score must be between 1 and 10' },
-        { status: 400 }
-      );
-    }
-
-    // Verify task ownership if taskId provided
-    if (taskId) {
-      const task = await prisma.task.findUnique({
-        where: { id: taskId }
+      // Create the focus session (pomodoroLog)
+      const newSession = await prisma.pomodoroLog.create({
+        data: {
+          duration,
+          sessionType,
+          focusScore: focusScore || null,
+          notes: notes || null,
+          taskId: taskId || null,
+          tagId: tagId || null,
+          projectId: projectId || null,
+          userId: user.id,
+          startedAt: startedAt ? new Date(startedAt) : new Date(),
+          completedAt: completedAt ? new Date(completedAt) : new Date()
+        },
+        select: {
+          id: true,
+          duration: true,
+          sessionType: true,
+          focusScore: true,
+          notes: true,
+          startedAt: true,
+          completedAt: true,
+          taskId: true,
+          tagId: true,
+          projectId: true,
+          task: {
+            select: {
+              id: true,
+              title: true,
+              status: true
+            }
+          },
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true
+            }
+          },
+          project: {
+            select: {
+              id: true,
+              title: true,
+              color: true,
+              icon: true
+            }
+          }
+        }
       });
 
-      if (!task || task.userId !== user.id) {
-        return NextResponse.json(
-          { error: 'Task not found or does not belong to user' },
-          { status: 400 }
-        );
-      }
+      console.log('Focus session created successfully:', newSession.id);
+      return NextResponse.json(newSession, { status: 201 });
+
+    } catch (error) {
+      console.error('Error creating focus session:', error);
+      return NextResponse.json(
+        { 
+          error: 'Failed to create focus session',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
     }
-
-    // Temporarily return mock data until Prisma client is regenerated
-    const newSession = {
-      id: 'temp-session-id',
-      duration,
-      sessionType: sessionType || 'POMODORO',
-      focusScore: focusScore || null,
-      notes: notes?.trim() || null,
-      taskId: taskId || null,
-      tagId: tagId || null,
-      userId: user.id,
-      startedAt: startedAt ? new Date(startedAt) : new Date(),
-      completedAt: completedAt ? new Date(completedAt) : new Date(),
-      task: null,
-      tag: null
-    };
-    console.log('Focus session creation temporarily disabled - Prisma client needs regeneration');
-
-    console.log('Focus session created successfully:', newSession.id);
-    return NextResponse.json(newSession, { status: 201 });
-
-  } catch (error) {
-    console.error('Error creating focus session:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to create focus session',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
+  })
+), 'write');

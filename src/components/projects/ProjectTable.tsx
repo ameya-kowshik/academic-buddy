@@ -249,7 +249,9 @@ export default function ProjectTable({
   };
 
   const isProject = (item: Project | Task): item is Project => {
-    return 'tasks' in item;
+    // Check if item has project-specific properties
+    // Projects have 'estimatedHours' and 'actualHours', tasks have 'estimatedMinutes' and 'actualMinutes'
+    return 'estimatedHours' in item || 'actualHours' in item;
   };
 
   const handleEditItem = (item: Project | Task) => {
