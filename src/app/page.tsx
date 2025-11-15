@@ -83,9 +83,9 @@ export default function LandingPage() {
       gradient: "from-red-500 to-orange-500"
     },
     {
-      icon: Layers,
-      title: "Project Management", 
-      description: "Kanban boards, timelines, and collaborative workspaces",
+      icon: CheckSquare,
+      title: "Task Management", 
+      description: "Organize your tasks with tags, priorities, and smart lists",
       gradient: "from-cyan-500 to-blue-500"
     },
     {
@@ -165,7 +165,7 @@ export default function LandingPage() {
           <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-4xl mx-auto leading-relaxed scroll-animate">
             {user 
               ? "Welcome back! Your productivity command center awaits. Ready to achieve more than ever before?" 
-              : "Transform your study sessions with AI-powered focus tools, advanced project management, and deep analytics that adapt to your learning style."
+              : "Transform your study sessions with AI-powered focus tools, smart task management, and deep analytics that adapt to your learning style."
             }
           </p>
 
@@ -180,10 +180,10 @@ export default function LandingPage() {
                     <ArrowRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href="/projects">
+                <Link href="/focus/analytics">
                   <Button size="lg" variant="outline" className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 hover:text-purple-300 hover:border-purple-400/50 text-lg px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 group">
-                    <Layers className="mr-3 h-5 w-5 transition-transform group-hover:scale-110" />
-                    Manage Projects
+                    <BarChart3 className="mr-3 h-5 w-5 transition-transform group-hover:scale-110" />
+                    View Analytics
                   </Button>
                 </Link>
               </>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                         <div>
                           <div className="text-sm font-medium text-slate-200">
                             {currentFeature === 0 && "Focus Session"}
-                            {currentFeature === 1 && "Project Board"}
+                            {currentFeature === 1 && "Task Management"}
                             {currentFeature === 2 && "Analytics Dashboard"}
                             {currentFeature === 3 && "Goal Tracker"}
                           </div>
