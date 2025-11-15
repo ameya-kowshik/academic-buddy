@@ -125,7 +125,9 @@ export const taskApi = {
       throw new Error('Failed to fetch tasks');
     }
     
-    return response.json();
+    const data = await response.json();
+    // API returns { tasks: [...], pagination: {...} }, extract just the tasks array
+    return data.tasks || data;
   },
 
   // Create new task
