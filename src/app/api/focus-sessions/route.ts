@@ -138,19 +138,8 @@ export const POST = withRateLimit(requireAuth(
         }
       }
 
-      // Verify project ownership if projectId provided
-      if (projectId) {
-        const project = await prisma.project.findUnique({
-          where: { id: projectId }
-        });
-
-        if (!project || project.userId !== user.id) {
-          return NextResponse.json(
-            { error: 'Project not found or does not belong to user' },
-            { status: 400 }
-          );
-        }
-      }
+      // Note: projectId is kept for historical data but project validation is removed
+      // since project management features have been removed from the app
 
       // Create the focus session (pomodoroLog)
       const newSession = await prisma.pomodoroLog.create({

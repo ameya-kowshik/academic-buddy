@@ -44,13 +44,6 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       icon: TrendingUp,
       description: "Productivity Insights",
       gradient: "from-emerald-500 to-teal-500"
-    },
-    {
-      name: "Projects",
-      href: "/projects",
-      icon: ListTodo,
-      description: "Project Management",
-      gradient: "from-cyan-500 to-blue-500"
     }
   ];
 

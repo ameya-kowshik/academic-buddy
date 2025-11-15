@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarIcon, Plus, X } from "lucide-react";
-import { Task } from "@/hooks/useProjects";
+import { Task } from "@prisma/client";
 
 interface TaskFormProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;

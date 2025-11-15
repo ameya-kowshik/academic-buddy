@@ -163,8 +163,6 @@ export const POST = withRateLimit(requireAuth(
 
       // Invalidate tasks cache for this user
       await invalidatePattern(generateCacheKey(CACHE_PREFIX.TASKS, user.id, '*'));
-      // Also invalidate projects cache since it includes task counts
-      await invalidatePattern(generateCacheKey(CACHE_PREFIX.PROJECTS, user.id, '*'));
 
       console.log("Task created successfully:", newTask.id);
       return NextResponse.json(newTask, { status: 201 });

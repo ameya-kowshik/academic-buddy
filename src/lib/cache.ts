@@ -71,7 +71,6 @@ export const CACHE_TTL = {
  */
 export const CACHE_PREFIX = {
   USER: 'user',
-  PROJECTS: 'projects',
   TASKS: 'tasks',
   ANALYTICS: 'analytics',
 } as const;
