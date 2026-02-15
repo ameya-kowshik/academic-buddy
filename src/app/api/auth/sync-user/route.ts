@@ -1,77 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Test database connection
-console.log('Prisma client loaded:', !!prisma);
+interface SyncUserRequest {
+  firebaseUid: string;
+  email: string | null;
+  name: string | null;
+  profilePic: string | null;
+}
 
+/**
+ * POST /api/auth/sync-user
+ * Syncs Firebase user with database
+ * Creates user if doesn't exist, updates if exists
+ */
 export async function POST(request: NextRequest) {
   try {
-    console.log('Sync user API called');
-    
-    const body = await request.json();
-    console.log('Request body:', body);
-    
+    const body: SyncUserRequest = await request.json();
     const { firebaseUid, email, name, profilePic } = body;
 
-    if (!firebaseUid || !email) {
-      console.error('Missing required fields:', { firebaseUid: !!firebaseUid, email: !!email });
+    // Validate required fields
+    if (!firebaseUid) {
       return NextResponse.json(
-        { error: 'Firebase UID and email are required' },
+        { error: 'Firebase UID is required' },
         { status: 400 }
       );
     }
 
-    console.log('Checking if user exists with firebaseUid:', firebaseUid);
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Email is required' },
+        { status: 400 }
+      );
+    }
 
-    // Check if user already exists
+    // Check if user exists
     let user = await prisma.user.findUnique({
       where: { firebaseUid }
     });
 
     if (user) {
-      console.log('User exists, updating:', user.id);
-      // Update existing user with latest info from Firebase
+      // Update existing user
       user = await prisma.user.update({
         where: { firebaseUid },
         data: {
           email,
-          name,
-          profilePic,
-        },
+          name: name || user.name,
+          profilePic: profilePic || user.profilePic
+        }
       });
-      console.log('User updated successfully:', user.id);
     } else {
-      console.log('Creating new user');
       // Create new user
       user = await prisma.user.create({
         data: {
           firebaseUid,
           email,
-          name,
-          profilePic,
-        },
+          name: name || email.split('@')[0], // Use email prefix as default name
+          profilePic
+        }
       });
-      console.log('User created successfully:', user.id);
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json(user, { status: 200 });
   } catch (error) {
     console.error('Error syncing user:', error);
-    
-    // More detailed error information
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { 
-          error: 'Failed to sync user with database',
-          details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        },
-        { status: 500 }
-      );
-    }
-    
     return NextResponse.json(
-      { error: 'Failed to sync user with database' },
+      {
+        error: 'Failed to sync user',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

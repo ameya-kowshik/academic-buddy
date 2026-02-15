@@ -50,12 +50,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Sync Firebase user with database
   const syncUserWithDatabase = async (firebaseUser: FirebaseUser) => {
     try {
-      console.log("Syncing user with database:", {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName,
-      });
-
       const response = await fetch("/api/auth/sync-user", {
         method: "POST",
         headers: {
@@ -71,16 +65,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (response.ok) {
         const userData = await response.json();
-        console.log("User synced successfully:", userData);
         setDbUser(userData);
       } else {
         const errorData = await response.json();
-        console.error("Failed to sync user:", response.status, errorData);
-        setError(`Failed to sync user: ${errorData.error || "Unknown error"}`);
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("Failed to sync user:", response.status, errorData);
+        }
+        // Don't set error state for sync issues - user can still use the app
       }
     } catch (error) {
-      console.error("Error syncing user with database:", error);
-      setError("Failed to connect to database");
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("Error syncing user with database:", error);
+      }
+      // Don't set error state for sync issues - user can still use the app
     }
   };
 

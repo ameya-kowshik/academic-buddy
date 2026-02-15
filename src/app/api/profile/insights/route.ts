@@ -129,17 +129,30 @@ async function generateAIInsight(analytics: AnalyticsData): Promise<string> {
     return "Keep up your amazing focus sessions! You're building great habits.";
   }
 
-  const prompt = `Based on these productivity analytics, generate a short, encouraging, and personalized insight (2-3 sentences max):
+  // Add day of week for more varied insights
+  const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  
+  const prompt = `You are a supportive productivity coach. Today is ${dayOfWeek}. Based on these productivity analytics, generate a unique, encouraging, and personalized insight (2-3 sentences max):
+
+Analytics:
 - Total focus sessions: ${analytics.totalSessions}
 - Total focus time: ${analytics.totalFocusTime} hours
 - Current streak: ${analytics.currentStreak} days
+- Longest streak: ${analytics.longestStreak} days
 - Average session duration: ${analytics.averageSessionDuration} minutes
 - Sessions this week: ${analytics.sessionsThisWeek}
 - Focus score average: ${analytics.focusScoreAverage}%
 - Top focus area: ${analytics.topTag || 'General'}
 - Weekly trend: ${analytics.weeklyTrend}
 
-Generate an insight that acknowledges their progress and provides one actionable suggestion. Keep it motivational and concise.`;
+Requirements:
+1. Acknowledge their specific progress (mention actual numbers)
+2. Provide ONE actionable, specific suggestion based on their data
+3. Keep it motivational but genuine (avoid generic praise)
+4. Make it feel personal and unique to their situation
+5. Consider the day of the week in your suggestion
+
+Generate a fresh, unique insight that would be different from yesterday's.`;
 
   try {
     const response = await fetch(GROQ_API_URL, {
@@ -152,22 +165,35 @@ Generate an insight that acknowledges their progress and provides one actionable
         model: 'mixtral-8x7b-32768',
         messages: [
           {
+            role: 'system',
+            content: 'You are a supportive productivity coach who provides personalized, data-driven insights. Keep responses concise and actionable.'
+          },
+          {
             role: 'user',
             content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 150
+        temperature: 0.8, // Higher temperature for more variety
+        max_tokens: 200,
+        top_p: 0.9
       })
     });
 
     if (!response.ok) {
-      console.error('GROQ API error:', response.statusText);
+      const errorText = await response.text();
+      console.error('GROQ API error:', response.status, errorText);
       return "Keep up your amazing focus sessions! You're building great habits.";
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || "Keep up your amazing focus sessions! You're building great habits.";
+    const insight = data.choices[0]?.message?.content?.trim();
+    
+    if (!insight) {
+      console.error('No insight generated from GROQ API');
+      return "Keep up your amazing focus sessions! You're building great habits.";
+    }
+    
+    return insight;
   } catch (error) {
     console.error('Error generating AI insight:', error);
     return "Keep up your amazing focus sessions! You're building great habits.";
@@ -177,8 +203,11 @@ Generate an insight that acknowledges their progress and provides one actionable
 // GET /api/profile/insights - Get user analytics and AI insights
 export const GET = withRateLimit(requireAuth(async (_request: NextRequest, _context, user: User) => {
   try {
-    // Try to get from cache (cache for 24 hours)
-    const cacheKey = generateCacheKey(CACHE_PREFIX.ANALYTICS, `insights:${user.id}`);
+    // Get today's date as a string (YYYY-MM-DD) to ensure daily regeneration
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = generateCacheKey(CACHE_PREFIX.ANALYTICS, `insights:${user.id}:${today}`);
+    
+    // Try to get from cache (cached until end of day)
     const cachedInsights = await cache.get<{
       analytics: AnalyticsData;
       insight: string;
@@ -186,14 +215,20 @@ export const GET = withRateLimit(requireAuth(async (_request: NextRequest, _cont
     }>(cacheKey);
 
     if (cachedInsights) {
+      console.log('Returning cached insights for', today);
       return NextResponse.json(cachedInsights);
     }
+
+    console.log('Generating new insights for', today);
 
     // Calculate analytics
     const analytics = await calculateAnalytics(user.id);
 
-    // Generate AI insight
-    const insight = await generateAIInsight(analytics);
+    // Generate AI insight (only if user has sessions)
+    let insight = "Start your first focus session to get personalized insights!";
+    if (analytics.totalSessions > 0) {
+      insight = await generateAIInsight(analytics);
+    }
 
     const response = {
       analytics,
@@ -201,8 +236,14 @@ export const GET = withRateLimit(requireAuth(async (_request: NextRequest, _cont
       generatedAt: new Date().toISOString()
     };
 
-    // Cache for 24 hours
-    await cache.set(cacheKey, response, CACHE_TTL.ANALYTICS * 144); // 24 hours
+    // Calculate seconds until end of day for cache expiration
+    const now = new Date();
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+    const secondsUntilEndOfDay = Math.floor((endOfDay.getTime() - now.getTime()) / 1000);
+
+    // Cache until end of day (so it regenerates tomorrow)
+    await cache.set(cacheKey, response, secondsUntilEndOfDay);
 
     return NextResponse.json(response);
   } catch (error) {
