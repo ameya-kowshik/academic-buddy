@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Play, 
@@ -47,7 +48,7 @@ interface TimerControlsProps {
   loading?: boolean;
 }
 
-export default function TimerControls({
+function TimerControls({
   isRunning,
   isPaused,
   canStart,
@@ -233,3 +234,6 @@ export default function TimerControls({
     </div>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(TimerControls);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -15,8 +15,7 @@ import AppLayout from "@/components/layout/AppLayout";
 // Hooks
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusSessions } from "@/hooks/useFocusSessions";
-import { usePomodoro, PomodoroSettings } from "@/hooks/usePomodoro";
-import { useStopwatch } from "@/hooks/useStopwatch";
+import { useTimer } from "@/contexts/TimerContext";
 
 // Components
 import CircularTimer from "@/components/focus/CircularTimer";
@@ -28,8 +27,6 @@ import TagManager from "@/components/focus/TagManager";
 // Utils
 import { audioManager, notificationManager } from "@/lib/audio";
 import { focusUtils } from "@/lib/focus-utils";
-
-type TimerMode = 'pomodoro' | 'stopwatch';
 
 function FocusPageContent() {
   
@@ -45,20 +42,26 @@ function FocusPageContent() {
     clearError
   } = useFocusSessions();
 
-  // Timer hooks
-  const pomodoro = usePomodoro();
-  const stopwatch = useStopwatch();
+  // Use global timer context instead of creating new instances
+  const {
+    timerMode,
+    setTimerMode,
+    pomodoro,
+    stopwatch,
+    selectedTagId,
+    setSelectedTagId,
+    soundEnabled,
+    setSoundEnabled,
+    notificationsEnabled,
+    setNotificationsEnabled
+  } = useTimer();
 
   // UI State
-  const [timerMode, setTimerMode] = useState<TimerMode>('pomodoro');
-  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
 
@@ -222,6 +225,26 @@ function FocusPageContent() {
     ? pomodoro.getPhaseLabel(pomodoro.phase)
     : stopwatch.getStatusLabel();
 
+  // Memoize button states to prevent flickering
+  const buttonStates = useMemo(() => ({
+    canStart: timerMode === 'pomodoro' 
+      ? pomodoro.phase === 'idle' || pomodoro.isPaused 
+      : stopwatch.canStart || stopwatch.canResume,
+    canPause: currentTimer.isRunning && !currentTimer.isPaused,
+    canResume: currentTimer.isPaused,
+    canStop: currentTimer.isRunning || currentTimer.isPaused,
+    canReset: !currentTimer.isRunning && !currentTimer.isPaused,
+    canSkip: timerMode === 'pomodoro' && pomodoro.phase !== 'idle'
+  }), [
+    timerMode,
+    pomodoro.phase,
+    pomodoro.isPaused,
+    stopwatch.canStart,
+    stopwatch.canResume,
+    currentTimer.isRunning,
+    currentTimer.isPaused
+  ]);
+
 
 
   return (
@@ -338,12 +361,12 @@ function FocusPageContent() {
             <TimerControls
               isRunning={currentTimer.isRunning}
               isPaused={currentTimer.isPaused}
-              canStart={timerMode === 'pomodoro' ? pomodoro.phase === 'idle' || pomodoro.isPaused : stopwatch.canStart || stopwatch.canResume}
-              canPause={currentTimer.isRunning}
-              canResume={currentTimer.isPaused}
-              canStop={currentTimer.isRunning || currentTimer.isPaused}
-              canReset={!currentTimer.isRunning && !currentTimer.isPaused}
-              canSkip={timerMode === 'pomodoro' && pomodoro.phase !== 'idle'}
+              canStart={buttonStates.canStart}
+              canPause={buttonStates.canPause}
+              canResume={buttonStates.canResume}
+              canStop={buttonStates.canStop}
+              canReset={buttonStates.canReset}
+              canSkip={buttonStates.canSkip}
               onStart={handleStart}
               onPause={handlePause}
               onStop={handleStop}

@@ -65,8 +65,15 @@ export default function SessionCompleteModal({
   };
 
   const handleSkip = () => {
-    // Save without rating/notes
+    // Save session without rating/notes
     handleSave();
+  };
+
+  const handleDiscard = () => {
+    // Close modal without saving
+    setFocusScore(null);
+    setNotes("");
+    onClose();
   };
 
   const getScoreColor = (score: number) => {
@@ -185,22 +192,33 @@ export default function SessionCompleteModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving || loading}
-              className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save Session"}
-            </Button>
+          <div className="space-y-3 pt-4">
+            <div className="flex gap-3">
+              <Button
+                onClick={handleSave}
+                disabled={saving || loading}
+                className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save Session"}
+              </Button>
+              
+              <Button
+                onClick={handleSkip}
+                disabled={saving || loading}
+                variant="outline"
+                className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
+              >
+                Save Without Rating
+              </Button>
+            </div>
             
             <Button
-              onClick={handleSkip}
+              onClick={handleDiscard}
               disabled={saving || loading}
-              variant="outline"
-              className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20 disabled:opacity-50"
+              variant="ghost"
+              className="w-full text-slate-500 hover:text-slate-400 hover:bg-slate-800/30 text-sm disabled:opacity-50"
             >
-              Skip
+              Discard Session
             </Button>
           </div>
 

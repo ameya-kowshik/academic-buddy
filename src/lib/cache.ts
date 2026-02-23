@@ -17,42 +17,90 @@ export interface CacheService {
  * Only initialized if REDIS_URL is provided
  */
 let redisClient: Redis | null = null;
+let redisInitialized = false;
+let redisAvailable = false;
+
+/**
+ * Test Redis connection with timeout
+ */
+async function testRedisConnection(client: Redis): Promise<boolean> {
+  try {
+    // Set a short timeout for the connection test
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Redis connection timeout')), 3000)
+    );
+    
+    const pingPromise = client.ping();
+    
+    await Promise.race([pingPromise, timeoutPromise]);
+    return true;
+  } catch (error) {
+    logger.warn('Redis connection test failed - caching disabled', { error: (error as Error).message });
+    return false;
+  }
+}
 
 /**
  * Initialize Redis client
  */
-function getRedisClient(): Redis | null {
+async function getRedisClient(): Promise<Redis | null> {
+  // Return null immediately if we already know Redis is unavailable
+  if (redisInitialized && !redisAvailable) {
+    return null;
+  }
+
   // Check if Upstash Redis REST API credentials are available
   if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
     // Fallback to REDIS_URL if available
     if (!env.REDIS_URL) {
+      if (!redisInitialized) {
+        logger.warn('Redis credentials not configured - caching disabled');
+        redisInitialized = true;
+      }
       return null;
     }
   }
 
-  if (!redisClient) {
+  if (!redisClient && !redisInitialized) {
+    redisInitialized = true;
+    
     try {
       // Prefer Upstash REST API configuration
       if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
-        redisClient = new Redis({
+        const client = new Redis({
           url: env.UPSTASH_REDIS_REST_URL,
           token: env.UPSTASH_REDIS_REST_TOKEN,
         });
+        
+        // Test connection before using
+        redisAvailable = await testRedisConnection(client);
+        
+        if (redisAvailable) {
+          redisClient = client;
+          logger.info('Redis client initialized and connected successfully');
+        } else {
+          logger.warn('Redis client initialized but connection failed - caching disabled');
+        }
       } else if (env.REDIS_URL) {
         // Fallback to standard Redis URL
-        redisClient = Redis.fromEnv();
-      }
-      
-      if (redisClient) {
-        logger.info('Redis client initialized successfully');
+        const client = Redis.fromEnv();
+        redisAvailable = await testRedisConnection(client);
+        
+        if (redisAvailable) {
+          redisClient = client;
+          logger.info('Redis client initialized and connected successfully');
+        } else {
+          logger.warn('Redis client initialized but connection failed - caching disabled');
+        }
       }
     } catch (error) {
-      logger.error('Failed to initialize Redis client', error as Error);
+      logger.error('Failed to initialize Redis client - caching disabled', error as Error);
+      redisAvailable = false;
       return null;
     }
   }
 
-  return redisClient;
+  return redisAvailable ? redisClient : null;
 }
 
 /**
@@ -88,10 +136,9 @@ export function generateCacheKey(prefix: string, ...parts: string[]): string {
  * @returns Cached value or null if not found or cache unavailable
  */
 export async function get<T>(key: string): Promise<T | null> {
-  const client = getRedisClient();
+  const client = await getRedisClient();
   
   if (!client) {
-    logger.debug('Cache unavailable, skipping get operation', { key });
     return null;
   }
 
@@ -107,6 +154,10 @@ export async function get<T>(key: string): Promise<T | null> {
     return value;
   } catch (error) {
     logger.error('Cache get error', error as Error, { key });
+    // Mark Redis as unavailable on connection errors
+    if ((error as any).code === 'ENOTFOUND' || (error as any).message?.includes('fetch failed')) {
+      redisAvailable = false;
+    }
     return null;
   }
 }
@@ -118,10 +169,9 @@ export async function get<T>(key: string): Promise<T | null> {
  * @param ttl Time to live in seconds (optional)
  */
 export async function set<T>(key: string, value: T, ttl?: number): Promise<void> {
-  const client = getRedisClient();
+  const client = await getRedisClient();
   
   if (!client) {
-    logger.debug('Cache unavailable, skipping set operation', { key });
     return;
   }
 
@@ -135,6 +185,10 @@ export async function set<T>(key: string, value: T, ttl?: number): Promise<void>
     }
   } catch (error) {
     logger.error('Cache set error', error as Error, { key });
+    // Mark Redis as unavailable on connection errors
+    if ((error as any).code === 'ENOTFOUND' || (error as any).message?.includes('fetch failed')) {
+      redisAvailable = false;
+    }
   }
 }
 
@@ -143,10 +197,9 @@ export async function set<T>(key: string, value: T, ttl?: number): Promise<void>
  * @param key Cache key
  */
 export async function deleteKey(key: string): Promise<void> {
-  const client = getRedisClient();
+  const client = await getRedisClient();
   
   if (!client) {
-    logger.debug('Cache unavailable, skipping delete operation', { key });
     return;
   }
 
@@ -155,6 +208,10 @@ export async function deleteKey(key: string): Promise<void> {
     logger.debug('Cache key deleted', { key });
   } catch (error) {
     logger.error('Cache delete error', error as Error, { key });
+    // Mark Redis as unavailable on connection errors
+    if ((error as any).code === 'ENOTFOUND' || (error as any).message?.includes('fetch failed')) {
+      redisAvailable = false;
+    }
   }
 }
 
@@ -163,10 +220,9 @@ export async function deleteKey(key: string): Promise<void> {
  * @param pattern Pattern to match (e.g., "user:123:*")
  */
 export async function invalidatePattern(pattern: string): Promise<void> {
-  const client = getRedisClient();
+  const client = await getRedisClient();
   
   if (!client) {
-    logger.debug('Cache unavailable, skipping invalidate operation', { pattern });
     return;
   }
 
@@ -184,6 +240,10 @@ export async function invalidatePattern(pattern: string): Promise<void> {
     }
   } catch (error) {
     logger.error('Cache invalidate pattern error', error as Error, { pattern });
+    // Mark Redis as unavailable on connection errors
+    if ((error as any).code === 'ENOTFOUND' || (error as any).message?.includes('fetch failed')) {
+      redisAvailable = false;
+    }
   }
 }
 

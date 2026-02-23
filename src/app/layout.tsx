@@ -4,6 +4,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { TimerProvider } from "@/contexts/TimerContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const roboto = Roboto({
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className="antialiased">
         <ErrorBoundary>
           <AuthProvider>
-            <Suspense>{children}</Suspense>
+            <TimerProvider>
+              <Suspense>{children}</Suspense>
+            </TimerProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>

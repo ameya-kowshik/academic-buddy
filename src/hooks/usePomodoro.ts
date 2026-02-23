@@ -152,6 +152,31 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
     };
   }, [state.isRunning, state.isPaused, settings]);
 
+  // Handle tab visibility changes to maintain timer accuracy
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - pause the timer temporarily
+        if (state.isRunning && !state.isPaused) {
+          // Store the current time when tab becomes hidden
+          if (startTimeRef.current) {
+            const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+            pausedTimeRef.current += elapsed;
+            startTimeRef.current = null;
+          }
+        }
+      } else {
+        // Tab is visible again - resume the timer
+        if (state.isRunning && !state.isPaused) {
+          startTimeRef.current = Date.now();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [state.isRunning, state.isPaused]);
+
   const getPhaseColor = (phase: PomodoroPhase): string => {
     switch (phase) {
       case 'focus':
@@ -256,23 +281,53 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
       const wasInFocus = prev.phase === 'focus';
       let newPhase: PomodoroPhase;
       let newCycleCount = prev.cycleCount;
+      let newTotalFocusTime = prev.totalFocusTime;
 
       if (wasInFocus) {
+        // If skipping a focus phase, count it as completed
         newCycleCount += 1;
+        
+        // Calculate how much time was actually spent
+        const totalDuration = settings.focusDuration * 60;
+        const timeSpent = totalDuration - prev.timeLeft;
+        const minutesSpent = Math.floor(timeSpent / 60);
+        
+        // Add to total focus time
+        newTotalFocusTime += timeSpent;
+        
+        // Notify session completion with actual time spent
+        if (onSessionCompleteRef.current && minutesSpent > 0) {
+          onSessionCompleteRef.current(minutesSpent);
+        }
+        
+        // Determine next break type
         if (newCycleCount % settings.longBreakInterval === 0) {
           newPhase = 'longBreak';
         } else {
           newPhase = 'shortBreak';
         }
       } else {
+        // Skipping a break, go back to focus
         newPhase = 'focus';
       }
+
+      // Notify phase change
+      if (onPhaseChangeRef.current) {
+        onPhaseChangeRef.current(newPhase);
+      }
+
+      // Reset timing refs for new phase
+      startTimeRef.current = null;
+      pausedTimeRef.current = 0;
 
       return {
         ...prev,
         phase: newPhase,
         timeLeft: getPhaseDuration(newPhase, settings) * 60,
         cycleCount: newCycleCount,
+        totalFocusTime: newTotalFocusTime,
+        isRunning: false, // Stop the timer when skipping
+        isPaused: false,
       };
     });
   }, [settings]);
