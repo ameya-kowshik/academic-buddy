@@ -58,7 +58,6 @@ export function TimerProvider({ children }: TimerProviderProps) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const hasRestoredRef = useRef(false);
-  const restorationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize timers - these instances persist across page navigation
   const pomodoro = usePomodoro();
@@ -123,8 +122,9 @@ export function TimerProvider({ children }: TimerProviderProps) {
       setTimerMode(savedState.timerMode);
       setSelectedTagId(savedState.selectedTagId);
 
-      // Defer timer restoration to next tick to avoid render-during-render
-      restorationTimeoutRef.current = setTimeout(() => {
+      // Defer timer restoration to avoid render-during-render error
+      // Use requestAnimationFrame to ensure it happens after render
+      requestAnimationFrame(() => {
         console.log("Restoring timer state");
 
         // Restore timer state
@@ -143,18 +143,11 @@ export function TimerProvider({ children }: TimerProviderProps) {
           console.log("Starting stopwatch timer");
           stopwatch.start();
         }
-      }, 0);
+      });
     } catch (error) {
       console.error("Failed to load timer state:", error);
     }
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (restorationTimeoutRef.current) {
-        clearTimeout(restorationTimeoutRef.current);
-      }
-    };
-  }, [pomodoro, stopwatch]);
+  }, []); // Empty deps - only run once on mount
 
   // Get current timer
   const currentTimer = timerMode === "pomodoro" ? pomodoro : stopwatch;
