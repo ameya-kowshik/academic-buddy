@@ -122,7 +122,7 @@ export default function LandingPage() {
               <Brain className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Academic Buddy
+              Veyra
             </span>
           </div>
           
@@ -154,12 +154,8 @@ export default function LandingPage() {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-8 scroll-animate">
-            <span className="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
-              Master Your
-            </span>
-            <br />
             <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Academic Journey
+              Veyra
             </span>
           </h1>
           
@@ -643,14 +639,14 @@ export default function LandingPage() {
               <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Academic Buddy
+              Veyra
             </span>
           </div>
           <p className="text-slate-400 mb-4">
             Empowering students worldwide to achieve academic excellence through intelligent productivity tools.
           </p>
           <div className="flex items-center justify-center space-x-6 text-sm text-slate-500">
-            <span>© 2024 Academic Buddy</span>
+            <span>© 2024 Veyra</span>
             <span>•</span>
             <span>Privacy Policy</span>
             <span>•</span>

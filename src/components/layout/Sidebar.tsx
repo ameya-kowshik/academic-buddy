@@ -14,7 +14,11 @@ import {
   X,
   User,
   Settings,
-  BarChart3
+  BarChart3,
+  FileText,
+  Layers,
+  HelpCircle,
+  BookOpen
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -44,6 +48,34 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       icon: TrendingUp,
       description: "Productivity Insights",
       gradient: "from-emerald-500 to-teal-500"
+    },
+    {
+      name: "Documents",
+      href: "/study/documents",
+      icon: FileText,
+      description: "Study Materials",
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      name: "Flashcards",
+      href: "/study/flashcards",
+      icon: Layers,
+      description: "Review & Practice",
+      gradient: "from-violet-500 to-purple-500"
+    },
+    {
+      name: "Quizzes",
+      href: "/study/quizzes",
+      icon: HelpCircle,
+      description: "Test Your Knowledge",
+      gradient: "from-amber-500 to-orange-500"
+    },
+    {
+      name: "Study Analytics",
+      href: "/study/analytics",
+      icon: BookOpen,
+      description: "Learning Insights",
+      gradient: "from-pink-500 to-rose-500"
     },
     {
       name: "Profile",
@@ -109,7 +141,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
                 </div>
                 {!isCollapsed && (
                   <span className="text-lg font-semibold text-slate-100 truncate">
-                    Academic Buddy
+                    Veyra
                   </span>
                 )}
               </div>

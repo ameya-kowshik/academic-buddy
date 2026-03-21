@@ -11,11 +11,11 @@ import {
  * @param type - Type of rate limit to apply (read, write, auth, default)
  * @returns Wrapped handler with rate limiting
  */
-export function withRateLimit(
-  handler: (request: NextRequest) => Promise<NextResponse>,
+export function withRateLimit<T = any>(
+  handler: (request: NextRequest, context?: { params?: T }) => Promise<NextResponse>,
   type: RateLimitType = "default"
 ) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: { params?: T }): Promise<NextResponse> => {
     try {
       // Extract user ID if available (from auth middleware)
       const userId = request.headers.get("x-user-id") || undefined;
@@ -66,7 +66,7 @@ export function withRateLimit(
       }
 
       // Execute the handler
-      const response = await handler(request);
+      const response = await handler(request, context);
 
       // Add rate limit headers to successful response
       headers.forEach((value, key) => {
@@ -77,7 +77,7 @@ export function withRateLimit(
     } catch (error) {
       console.error("Rate limit middleware error:", error);
       // On error, allow the request to proceed
-      return handler(request);
+      return handler(request, context);
     }
   };
 }

@@ -410,7 +410,7 @@ A comprehensive guide to all functionalities available in Academic Buddy, organi
 - Visual progress indicators
 
 ### Study-Focused Features
-- Flashcard system for learning
+- Flashcard system for learning 
 - Quiz creation and tracking
 - Source material management
 - Integration with focus sessions

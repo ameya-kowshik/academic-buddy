@@ -13,6 +13,7 @@ if (!admin.apps.length) {
       ? admin.credential.cert(serviceAccount)
       : admin.credential.applicationDefault(),
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   });
 }
 

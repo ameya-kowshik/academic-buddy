@@ -53,6 +53,8 @@ export const GET = withRateLimit(requireAuth(async (request: NextRequest, contex
         taskId: true,
         tagId: true,
         projectId: true,
+        flashcardGrouping: true,
+        quizId: true,
         task: {
           select: {
             id: true,
@@ -73,6 +75,13 @@ export const GET = withRateLimit(requireAuth(async (request: NextRequest, contex
             title: true,
             color: true,
             icon: true
+          }
+        },
+        quiz: {
+          select: {
+            id: true,
+            title: true,
+            difficulty: true
           }
         }
       },
@@ -121,7 +130,9 @@ export const POST = withRateLimit(requireAuth(
         tagId,
         projectId,
         startedAt,
-        completedAt 
+        completedAt,
+        flashcardGrouping,
+        quizId
       } = validatedData;
 
       // Verify task ownership if taskId provided
@@ -133,6 +144,20 @@ export const POST = withRateLimit(requireAuth(
         if (!task || task.userId !== user.id) {
           return NextResponse.json(
             { error: 'Task not found or does not belong to user' },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Verify quiz ownership if quizId provided
+      if (quizId) {
+        const quiz = await prisma.quiz.findUnique({
+          where: { id: quizId }
+        });
+
+        if (!quiz || quiz.userId !== user.id) {
+          return NextResponse.json(
+            { error: 'Quiz not found or does not belong to user' },
             { status: 400 }
           );
         }
@@ -151,6 +176,8 @@ export const POST = withRateLimit(requireAuth(
           taskId: taskId || null,
           tagId: tagId || null,
           projectId: projectId || null,
+          flashcardGrouping: flashcardGrouping || null,
+          quizId: quizId || null,
           userId: user.id,
           startedAt: startedAt ? new Date(startedAt) : new Date(),
           completedAt: completedAt ? new Date(completedAt) : new Date()
@@ -166,6 +193,8 @@ export const POST = withRateLimit(requireAuth(
           taskId: true,
           tagId: true,
           projectId: true,
+          flashcardGrouping: true,
+          quizId: true,
           task: {
             select: {
               id: true,
@@ -186,6 +215,13 @@ export const POST = withRateLimit(requireAuth(
               title: true,
               color: true,
               icon: true
+            }
+          },
+          quiz: {
+            select: {
+              id: true,
+              title: true,
+              difficulty: true
             }
           }
         }

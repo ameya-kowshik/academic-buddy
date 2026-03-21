@@ -14,7 +14,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Academic Buddy - AI-Powered Study Companion",
+  title: "Veyra - AI-Powered Study Companion",
   description:
     "Transform your study sessions with AI-powered task management, focus sessions, and study materials.",
 };

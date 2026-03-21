@@ -66,17 +66,17 @@ export async function extractUserFromRequest(
  * @param handler - The route handler function to wrap
  * @returns A wrapped handler that checks authentication first
  */
-export function requireAuth(
+export function requireAuth<T = any>(
   handler: (
     request: NextRequest,
-    context: { params?: any },
+    context: { params?: T },
     user: User,
     firebaseUid: string
   ) => Promise<NextResponse>
 ) {
   return async (
     request: NextRequest,
-    context: { params?: any } = {}
+    context: { params?: T } = {}
   ): Promise<NextResponse> => {
     try {
       const { user, firebaseUid } = await extractUserFromRequest(request);

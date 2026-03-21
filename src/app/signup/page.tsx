@@ -100,7 +100,7 @@ export default function SignupPage() {
 
               <div className="mb-2">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                  Academic Buddy
+                  Veyra
                 </h1>
               </div>
 

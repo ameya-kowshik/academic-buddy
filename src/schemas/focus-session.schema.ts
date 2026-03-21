@@ -21,7 +21,9 @@ export const createFocusSessionSchema = z.object({
   completedAt: z.string().datetime().optional().nullable(),
   projectId: z.string().cuid().optional().nullable(),
   taskId: z.string().cuid().optional().nullable(),
-  tagId: z.string().cuid().optional().nullable()
+  tagId: z.string().cuid().optional().nullable(),
+  flashcardGrouping: z.string().max(255, 'Flashcard grouping must be 255 characters or less').optional().nullable(),
+  quizId: z.string().cuid().optional().nullable()
 });
 
 // Update focus session schema (all fields optional)
@@ -42,7 +44,9 @@ export const updateFocusSessionSchema = z.object({
   completedAt: z.string().datetime().optional().nullable(),
   projectId: z.string().cuid().optional().nullable(),
   taskId: z.string().cuid().optional().nullable(),
-  tagId: z.string().cuid().optional().nullable()
+  tagId: z.string().cuid().optional().nullable(),
+  flashcardGrouping: z.string().max(255, 'Flashcard grouping must be 255 characters or less').optional().nullable(),
+  quizId: z.string().cuid().optional().nullable()
 }).strict();
 
 // Type exports

@@ -10,7 +10,7 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 interface AnalyticsData {
   totalSessions: number;
-  totalFocusTime: number;
+  totalFocusTime: number; 
   currentStreak: number;
   longestStreak: number;
   averageSessionDuration: number;
