@@ -127,9 +127,11 @@ export function useStopwatch() {
 
   const stop = useCallback(() => {
     setState(prev => {
-      // Notify session completion if there was actual time elapsed
+      // Defer the callback to avoid setState-during-render issues
       if (prev.timeElapsed > 0 && onSessionCompleteRef.current) {
-        onSessionCompleteRef.current(Math.floor(prev.timeElapsed / 60)); // Convert to minutes
+        const durationMinutes = Math.max(1, Math.round(prev.timeElapsed / 60));
+        const cb = onSessionCompleteRef.current;
+        setTimeout(() => cb(durationMinutes), 0);
       }
 
       startTimeRef.current = null;

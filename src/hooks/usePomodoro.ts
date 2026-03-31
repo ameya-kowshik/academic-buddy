@@ -97,7 +97,8 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
 
               // Notify session completion
               if (onSessionCompleteRef.current) {
-                onSessionCompleteRef.current(settings.focusDuration);
+                const cb = onSessionCompleteRef.current;
+                setTimeout(() => cb(settings.focusDuration), 0);
               }
             } else {
               // Break completed, back to focus
@@ -295,9 +296,11 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
         // Add to total focus time
         newTotalFocusTime += timeSpent;
         
-        // Notify session completion with actual time spent
-        if (onSessionCompleteRef.current && minutesSpent > 0) {
-          onSessionCompleteRef.current(minutesSpent);
+        // Notify session completion with actual time spent (minimum 1 minute)
+        if (onSessionCompleteRef.current && timeSpent > 0) {
+          const cb = onSessionCompleteRef.current;
+          const mins = Math.max(1, minutesSpent);
+          setTimeout(() => cb(mins), 0);
         }
         
         // Determine next break type

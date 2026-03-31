@@ -196,10 +196,13 @@ function FocusPageContent() {
   const handleSaveSession = async (data: { focusScore?: number; notes?: string }) => {
     if (!sessionData) return;
 
+    // Ensure duration is at least 1 minute (API requires positive integer)
+    const duration = Math.max(1, Math.round(sessionData.duration));
+
     try {
       setActionLoading(true);
       await createSession({
-        duration: sessionData.duration,
+        duration,
         sessionType: sessionData.sessionType,
         focusScore: data.focusScore,
         notes: data.notes,

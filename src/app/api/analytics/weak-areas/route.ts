@@ -15,7 +15,7 @@ export const GET = withRateLimit(
 
       const weakAreas = await analyticsService.identifyWeakAreas(user.id);
 
-      return NextResponse.json(weakAreas);
+      return NextResponse.json({ weakAreas });
     } catch (error) {
       console.error('Error identifying weak areas:', error);
       return NextResponse.json(
