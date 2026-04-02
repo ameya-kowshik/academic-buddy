@@ -117,7 +117,7 @@ export default function CircularTimer({
             <div className="flex items-center justify-center space-x-2">
               {isPaused && (
                 <div className="flex items-center space-x-1 text-amber-400">
-                  <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
                   <span className="text-xs font-medium">PAUSED</span>
                 </div>
               )}
@@ -125,7 +125,7 @@ export default function CircularTimer({
               {isRunning && !isPaused && (
                 <div className="flex items-center space-x-1" style={{ color }}>
                   <div 
-                    className="w-2 h-2 rounded-full animate-pulse" 
+                    className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: color }}
                   ></div>
                   <span className="text-xs font-medium">ACTIVE</span>
@@ -143,16 +143,6 @@ export default function CircularTimer({
         )}
       </div>
 
-      {/* Pulse animation for active state */}
-      {isRunning && !isPaused && (
-        <div 
-          className="absolute inset-0 rounded-full animate-ping opacity-20"
-          style={{ 
-            backgroundColor: color,
-            animationDuration: '2s'
-          }}
-        />
-      )}
     </div>
   );
 }

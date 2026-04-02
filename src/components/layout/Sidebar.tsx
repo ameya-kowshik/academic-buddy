@@ -136,7 +136,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
             <div className="flex items-center justify-between">
               {/* Logo and Title */}
               <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'justify-center w-full' : 'space-x-3 flex-1'}`}>
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-violet-500 via-blue-500 to-cyan-400 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
                 {!isCollapsed && (

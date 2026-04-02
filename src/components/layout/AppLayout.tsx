@@ -41,7 +41,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-12 h-12 bg-gradient-to-br from-violet-500 via-blue-500 to-cyan-400 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
             <Brain className="h-6 w-6 text-white" />
           </div>
           <p className="text-slate-400">Loading...</p>

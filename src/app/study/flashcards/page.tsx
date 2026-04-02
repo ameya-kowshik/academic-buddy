@@ -5,7 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import FlashcardReview from "@/components/flashcards/FlashcardReview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Layers, FileText, Loader2, BookOpen, ArrowLeft } from "lucide-react";
+import { Layers, FileText, Loader2, BookOpen, ArrowLeft, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 
@@ -141,6 +141,50 @@ export default function FlashcardsPage() {
     }
   };
 
+  const handleDeleteFlashcard = async (flashcardId: string) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      await fetch(`/api/flashcards/${flashcardId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refresh the current view
+      if (selectedDocument) {
+        fetchFlashcards(selectedDocument.id);
+      } else {
+        fetchDocuments();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete flashcard");
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      // Fetch all flashcards for this doc and delete them
+      const res = await fetch(`/api/flashcards?sourceMaterialId=${docId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        await Promise.all(
+          (data.flashcards || []).map((fc: { id: string }) =>
+            fetch(`/api/flashcards/${fc.id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+        );
+      }
+      fetchDocuments();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete flashcards");
+    }
+  };
+
   const handleExitReview = () => {
     setReviewMode(false);
     setSelectedDocument(null);
@@ -241,13 +285,23 @@ export default function FlashcardsPage() {
                           <h3 className="text-slate-200 font-medium mb-2 line-clamp-2 group-hover:text-violet-300 transition-colors">
                             {doc.fileName}
                           </h3>
-                          <Button
-                            size="sm"
-                            className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white"
-                          >
-                            <BookOpen className="w-4 h-4 mr-2" />
-                            Review Flashcards
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="flex-1 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white"
+                            >
+                              <BookOpen className="w-4 h-4 mr-2" />
+                              Review
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40"
+                              onClick={(e) => { e.stopPropagation(); handleDeleteDocument(doc.id); }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}

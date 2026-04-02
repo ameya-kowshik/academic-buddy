@@ -562,7 +562,7 @@ export class QuizService {
       throw new Error('Quiz not found');
     }
 
-    // Get all attempts for this quiz with quiz details
+    // Get last 5 attempts for this quiz
     const attempts = await prisma.quizAttempt.findMany({
       where: {
         quizId,
@@ -580,6 +580,7 @@ export class QuizService {
       orderBy: {
         startedAt: 'desc',
       },
+      take: 5,
     });
 
     return attempts;

@@ -14,9 +14,9 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Veyra - AI-Powered Study Companion",
+  title: "Veyra — Faith in Your Learning",
   description:
-    "Transform your study sessions with AI-powered task management, focus sessions, and study materials.",
+    "Veyra turns your PDF notes into AI-generated flashcards and quizzes, tracks your performance, and surfaces exactly where you need to improve.",
 };
 
 export default function RootLayout({

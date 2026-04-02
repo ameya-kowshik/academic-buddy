@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -63,6 +63,7 @@ function FocusPageContent() {
   const [sessionData, setSessionData] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
 
 
@@ -268,7 +269,14 @@ function FocusPageContent() {
 
             <div className="flex items-center space-x-2">
               <Button
-                onClick={() => setShowSettings(!showSettings)}
+                onClick={() => {
+                  setShowSettings(!showSettings);
+                  if (!showSettings) {
+                    setTimeout(() => {
+                      settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }
+                }}
                 variant="outline"
                 size="sm"
                 className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-blue-500/20 hover:text-cyan-300 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-md hover:shadow-cyan-500/20"
@@ -406,6 +414,115 @@ function FocusPageContent() {
                     <div>
                       <p className="text-2xl font-bold text-blue-400">{pomodoro.settings.shortBreakDuration}m</p>
                       <p className="text-sm text-slate-400">Break Duration</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pomodoro Settings Panel */}
+            {!isFullscreen && timerMode === 'pomodoro' && showSettings && (
+              <Card ref={settingsRef} className="bg-slate-900/50 border-slate-700/50">
+                <CardHeader>
+                  <CardTitle className="text-slate-100 text-base flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    Timer Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Focus Duration */}
+                  <div>
+                    <p className="text-slate-300 text-sm font-medium mb-2">Focus Duration</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[15, 20, 25, 30, 45, 60].map((mins) => (
+                        <Button
+                          key={mins}
+                          size="sm"
+                          variant={pomodoro.settings.focusDuration === mins ? 'default' : 'outline'}
+                          onClick={() => pomodoro.updateSettings({ focusDuration: mins })}
+                          className={pomodoro.settings.focusDuration === mins
+                            ? 'bg-red-600 hover:bg-red-500 text-white'
+                            : 'bg-slate-800/40 border-slate-600/50 text-slate-300 hover:bg-slate-800/60'}
+                        >
+                          {mins}m
+                        </Button>
+                      ))}
+                      <input
+                        type="number"
+                        min={1}
+                        max={120}
+                        placeholder="Custom"
+                        className="w-20 px-2 py-1 text-sm bg-slate-800/40 border border-slate-600/50 rounded text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                        onBlur={(e) => {
+                          const v = parseInt(e.target.value);
+                          if (v >= 1 && v <= 120) pomodoro.updateSettings({ focusDuration: v });
+                          e.target.value = '';
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Short Break */}
+                  <div>
+                    <p className="text-slate-300 text-sm font-medium mb-2">Short Break</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[3, 5, 10, 15].map((mins) => (
+                        <Button
+                          key={mins}
+                          size="sm"
+                          variant={pomodoro.settings.shortBreakDuration === mins ? 'default' : 'outline'}
+                          onClick={() => pomodoro.updateSettings({ shortBreakDuration: mins })}
+                          className={pomodoro.settings.shortBreakDuration === mins
+                            ? 'bg-green-600 hover:bg-green-500 text-white'
+                            : 'bg-slate-800/40 border-slate-600/50 text-slate-300 hover:bg-slate-800/60'}
+                        >
+                          {mins}m
+                        </Button>
+                      ))}
+                      <input
+                        type="number"
+                        min={1}
+                        max={30}
+                        placeholder="Custom"
+                        className="w-20 px-2 py-1 text-sm bg-slate-800/40 border border-slate-600/50 rounded text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                        onBlur={(e) => {
+                          const v = parseInt(e.target.value);
+                          if (v >= 1 && v <= 30) pomodoro.updateSettings({ shortBreakDuration: v });
+                          e.target.value = '';
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Long Break */}
+                  <div>
+                    <p className="text-slate-300 text-sm font-medium mb-2">Long Break</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[10, 15, 20, 30].map((mins) => (
+                        <Button
+                          key={mins}
+                          size="sm"
+                          variant={pomodoro.settings.longBreakDuration === mins ? 'default' : 'outline'}
+                          onClick={() => pomodoro.updateSettings({ longBreakDuration: mins })}
+                          className={pomodoro.settings.longBreakDuration === mins
+                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                            : 'bg-slate-800/40 border-slate-600/50 text-slate-300 hover:bg-slate-800/60'}
+                        >
+                          {mins}m
+                        </Button>
+                      ))}
+                      <input
+                        type="number"
+                        min={1}
+                        max={60}
+                        placeholder="Custom"
+                        className="w-20 px-2 py-1 text-sm bg-slate-800/40 border border-slate-600/50 rounded text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                        onBlur={(e) => {
+                          const v = parseInt(e.target.value);
+                          if (v >= 1 && v <= 60) pomodoro.updateSettings({ longBreakDuration: v });
+                          e.target.value = '';
+                        }}
+                      />
                     </div>
                   </div>
                 </CardContent>

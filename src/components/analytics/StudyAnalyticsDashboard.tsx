@@ -11,9 +11,11 @@ import {
   Clock,
   TrendingUp,
   Calendar,
+  Quote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { getDailyQuote } from "@/lib/quotes";
 
 interface DailyAnalytics {
   date: string;
@@ -245,8 +247,23 @@ export default function StudyAnalyticsDashboard({
 
   const maxValue = getMaxValue(analytics.dailyBreakdown);
 
+  const dailyQuote = getDailyQuote();
+
   return (
     <div className="space-y-6">
+      {/* Daily Quote */}
+      <Card className="bg-gradient-to-br from-violet-900/30 to-slate-900/50 border-violet-700/30">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-3">
+            <Quote className="w-5 h-5 text-violet-400 flex-shrink-0 mt-1" />
+            <div>
+              <p className="text-slate-200 text-sm leading-relaxed italic">"{dailyQuote.text}"</p>
+              <p className="text-violet-400 text-xs mt-2 font-medium">— {dailyQuote.author}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Time Range Selector */}
       <div className="flex items-center gap-2">
         <Button
