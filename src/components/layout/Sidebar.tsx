@@ -43,7 +43,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
       gradient: "from-red-500 to-orange-500"
     },
     {
-      name: "Analytics",
+      name: "Focus Analytics",
       href: "/focus/analytics",
       icon: TrendingUp,
       description: "Productivity Insights",

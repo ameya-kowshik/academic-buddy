@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, HelpCircle, Trophy, Clock, CheckCircle2, XCircle,
-  RotateCcw, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Brain, Sparkles
+  RotateCcw, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Brain
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ interface AttemptWithReview {
   correctAnswers: number;
   timeSpent: number | null;
   completedAt: string;
+  weakAreaAnalysis: { weakTopics: string[]; recommendations: string[] } | null;
   quiz: { id: string; title: string; description: string | null; difficulty: number };
   questionAttempts: QuestionAttempt[];
 }
@@ -52,10 +53,6 @@ export default function QuizResultsPage() {
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [weakAreaAnalysis, setWeakAreaAnalysis] = useState<{
-    weakTopics: string[];
-    recommendations: string[];
-  } | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,11 +92,10 @@ export default function QuizResultsPage() {
     });
   };
 
-  const handleAnalyzeWeakAreas = async () => {
+  const handleAnalyze = async () => {
     if (!user || !attemptId) return;
     setAnalyzing(true);
     setAnalysisError(null);
-    setWeakAreaAnalysis(null);
     try {
       const token = await user.getIdToken();
       const res = await fetch('/api/ai/analyze-weak-areas', {
@@ -109,7 +105,8 @@ export default function QuizResultsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Analysis failed');
-      setWeakAreaAnalysis(data.analysis);
+      // Update the attempt in state with the saved analysis
+      setAttempt((prev) => prev ? { ...prev, weakAreaAnalysis: data.analysis } : prev);
     } catch (err) {
       setAnalysisError(err instanceof Error ? err.message : 'Analysis failed');
     } finally {
@@ -151,7 +148,6 @@ export default function QuizResultsPage() {
   );
 
   const scoreColor = getScoreColor(attempt.score);
-  const wrongAnswers = attempt.questionAttempts.filter((q) => !q.isCorrect);
   const displayedQuestions = showAll ? attempt.questionAttempts : attempt.questionAttempts.slice(0, 5);
 
   return (
@@ -215,7 +211,7 @@ export default function QuizResultsPage() {
           </Card>
         )}
 
-        {/* AI Weak Area Analysis for this attempt */}
+        {/* AI Topic Analysis — on-demand, saved permanently once generated */}
         {attempt.totalQuestions - attempt.correctAnswers > 0 && (
           <Card className="bg-slate-900/50 border-slate-700/50">
             <CardContent className="p-5">
@@ -224,9 +220,9 @@ export default function QuizResultsPage() {
                   <Brain className="w-5 h-5 text-violet-400" />
                   <h3 className="text-slate-200 font-medium">AI Topic Analysis</h3>
                 </div>
-                {!weakAreaAnalysis && (
+                {!attempt.weakAreaAnalysis && (
                   <Button
-                    onClick={handleAnalyzeWeakAreas}
+                    onClick={handleAnalyze}
                     disabled={analyzing}
                     size="sm"
                     className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white"
@@ -234,24 +230,30 @@ export default function QuizResultsPage() {
                     {analyzing ? (
                       <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Analyzing...</>
                     ) : (
-                      <><Sparkles className="w-3.5 h-3.5 mr-2" />Identify Weak Topics</>
+                      <><Brain className="w-3.5 h-3.5 mr-2" />Identify Weak Topics</>
                     )}
                   </Button>
                 )}
               </div>
 
               {analysisError && (
-                <p className="text-red-400 text-sm">{analysisError}</p>
+                <p className="text-red-400 text-sm mb-3">{analysisError}</p>
               )}
 
-              {weakAreaAnalysis && (
+              {!attempt.weakAreaAnalysis && !analyzing && !analysisError && (
+                <p className="text-slate-500 text-sm">
+                  Click "Identify Weak Topics" to get AI-powered analysis of which specific concepts you need to review. The result will be saved and available every time you view this attempt.
+                </p>
+              )}
+
+              {attempt.weakAreaAnalysis && (
                 <div className="space-y-4">
-                  {weakAreaAnalysis.weakTopics.length > 0 ? (
+                  {attempt.weakAreaAnalysis.weakTopics.length > 0 ? (
                     <>
                       <div>
-                        <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Topics to review</p>
+                        <p className="text-slate-500 text-xs uppercase tracking-wide mb-2">Topics to review</p>
                         <div className="flex flex-wrap gap-2">
-                          {weakAreaAnalysis.weakTopics.map((topic, i) => (
+                          {attempt.weakAreaAnalysis.weakTopics.map((topic, i) => (
                             <span key={i} className="px-3 py-1 bg-orange-500/15 border border-orange-500/30 text-orange-300 rounded-full text-sm">
                               {topic}
                             </span>
@@ -259,9 +261,9 @@ export default function QuizResultsPage() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Recommendations</p>
+                        <p className="text-slate-500 text-xs uppercase tracking-wide mb-2">Recommendations</p>
                         <ol className="space-y-2">
-                          {weakAreaAnalysis.recommendations.map((rec, i) => (
+                          {attempt.weakAreaAnalysis.recommendations.map((rec, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
                               <span className="text-violet-400 font-bold flex-shrink-0">{i + 1}.</span>
                               {rec}
@@ -271,30 +273,18 @@ export default function QuizResultsPage() {
                       </div>
                     </>
                   ) : (
-                    <p className="text-emerald-400 text-sm">No specific weak topics identified — good performance on the questions you got wrong.</p>
+                    <p className="text-emerald-400 text-sm">
+                      {attempt.weakAreaAnalysis.recommendations[0] || "No specific weak topics identified."}
+                    </p>
                   )}
-                  <Button
-                    onClick={handleAnalyzeWeakAreas}
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-500 hover:text-violet-400 text-xs"
-                  >
-                    Re-analyze
-                  </Button>
                 </div>
-              )}
-
-              {!weakAreaAnalysis && !analyzing && !analysisError && (
-                <p className="text-slate-500 text-sm">
-                  Click "Identify Weak Topics" to get AI-powered analysis of which specific concepts you need to review based on the questions you got wrong.
-                </p>
               )}
             </CardContent>
           </Card>
         )}
-
         {/* Question Review */}
-        <Card className="bg-slate-900/50 border-slate-700/50">          <CardHeader>
+        <Card className="bg-slate-900/50 border-slate-700/50">
+          <CardHeader>
             <CardTitle className="text-slate-100 flex items-center justify-between">
               <span>Question Review</span>
               <div className="flex gap-2">
@@ -308,7 +298,7 @@ export default function QuizResultsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {displayedQuestions.map((qa, index) => {
+            {displayedQuestions.map((qa) => {
               const isExpanded = expandedQuestions.has(qa.id);
               return (
                 <div key={qa.id} className={cn(

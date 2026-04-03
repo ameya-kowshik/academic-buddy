@@ -8,28 +8,16 @@ import { quizService } from '@/lib/services/quiz.service';
 export const POST = withRateLimit(
   requireAuth(async (_request: NextRequest, context, _user: User) => {
     try {
-      const { id: attemptId } = await context.params;
-      console.log('POST /api/quizzes/attempts/[id]/complete called for attempt:', attemptId);
-
+      const { id: attemptId } = await context.params as unknown as { id: string };
       const attempt = await quizService.completeAttempt(attemptId);
-
-      console.log('Quiz attempt completed successfully:', attempt.id);
       return NextResponse.json(attempt);
     } catch (error) {
       console.error('Error completing quiz attempt:', error);
-
       if (error instanceof Error && error.message === 'Quiz attempt not found') {
-        return NextResponse.json(
-          { error: 'Quiz attempt not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Quiz attempt not found' }, { status: 404 });
       }
-
       return NextResponse.json(
-        {
-          error: 'Failed to complete quiz attempt',
-          details: error instanceof Error ? error.message : 'Unknown error',
-        },
+        { error: 'Failed to complete quiz attempt', details: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       );
     }

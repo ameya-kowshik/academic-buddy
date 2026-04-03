@@ -234,13 +234,14 @@ model QuizQuestion {
 
 // Track quiz attempts (now for entire quiz sessions)
 model QuizAttempt {
-  id             String    @id @default(cuid())
-  score          Float // Percentage score (0.0 - 100.0)
-  totalQuestions Int // Number of questions in quiz at time of attempt
-  correctAnswers Int // Number of correct answers
-  timeSpent      Int? // Total time in seconds
-  startedAt      DateTime  @default(now())
-  completedAt    DateTime?
+  id                String    @id @default(cuid())
+  score             Float // Percentage score (0.0 - 100.0)
+  totalQuestions    Int // Number of questions in quiz at time of attempt
+  correctAnswers    Int // Number of correct answers
+  timeSpent         Int? // Total time in seconds
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+  weakAreaAnalysis  Json? // Stored AI analysis: { weakTopics: string[], recommendations: string[] }
 
   // Relations
   quizId           String
