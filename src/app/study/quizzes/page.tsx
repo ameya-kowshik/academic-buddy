@@ -108,7 +108,7 @@ export default function QuizzesPage() {
               </div>
             </div>
             <Button
-              onClick={() => router.push("/study/quizzes/new")}
+              onClick={() => router.push("/study/documents")}
               className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -139,11 +139,11 @@ export default function QuizzesPage() {
                 <div className="text-center py-12">
                   <p className="text-slate-400 mb-4">No quizzes yet. Create your first one!</p>
                   <Button
-                    onClick={() => router.push("/study/quizzes/new")}
+                    onClick={() => router.push("/study/documents")}
                     className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Quiz
+                    Go to Documents
                   </Button>
                 </div>
               ) : (

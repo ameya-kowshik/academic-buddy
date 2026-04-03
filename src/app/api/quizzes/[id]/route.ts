@@ -7,10 +7,12 @@ import { updateQuizSchema } from '@/schemas/quiz.schema';
 
 // GET /api/quizzes/[id] - Get a specific quiz with questions
 export const GET = withRateLimit(
-  requireAuth(async (_request: NextRequest, context, user: User) => {
+  requireAuth(async (request: NextRequest, context, user: User) => {
     try {
-      const { id } = await context.params;
-      console.log('GET /api/quizzes/[id] called for quiz:', id);
+      const params = await context.params as unknown as { id: string };
+      const { id } = params;
+      const { searchParams } = new URL(request.url);
+      const mode = searchParams.get('mode'); // 'take' strips answers
 
       const quiz = await quizService.getQuiz(user.id, id);
 
@@ -19,6 +21,15 @@ export const GET = withRateLimit(
           { error: 'Quiz not found' },
           { status: 404 }
         );
+      }
+
+      // Strip correctAnswer and explanation when in take mode
+      if (mode === 'take') {
+        const safeQuiz = {
+          ...quiz,
+          questions: quiz.questions.map(({ correctAnswer: _ca, explanation: _ex, ...q }) => q),
+        };
+        return NextResponse.json(safeQuiz);
       }
 
       return NextResponse.json(quiz);
@@ -40,7 +51,7 @@ export const GET = withRateLimit(
 export const PUT = withRateLimit(
   requireAuth(async (request: NextRequest, context, user: User) => {
     try {
-      const { id } = await context.params;
+      const { id } = await context.params as unknown as { id: string };
       console.log('PUT /api/quizzes/[id] called for quiz:', id);
 
       const body = await request.json();
@@ -93,7 +104,7 @@ export const PUT = withRateLimit(
 export const DELETE = withRateLimit(
   requireAuth(async (_request: NextRequest, context, user: User) => {
     try {
-      const { id } = await context.params;
+      const { id } = await context.params as unknown as { id: string };
       console.log('DELETE /api/quizzes/[id] called for quiz:', id);
 
       await quizService.deleteQuiz(user.id, id);

@@ -28,8 +28,6 @@ interface Question {
   id: string;
   questionText: string;
   options: string[];
-  correctAnswer: string;
-  explanation: string;
   order: number;
 }
 
@@ -101,7 +99,7 @@ export default function TakeQuizPage() {
       setError(null);
 
       const token = await user.getIdToken();
-      const response = await fetch(`/api/quizzes/${quizId}`, {
+      const response = await fetch(`/api/quizzes/${quizId}?mode=take`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

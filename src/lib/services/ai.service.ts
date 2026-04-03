@@ -150,7 +150,7 @@ Do not include any markdown formatting, code blocks, or additional text. Return 
    * @returns Generated quiz with questions
    * @throws Error if AI service unavailable or generation fails
    */
-  async generateQuiz(documentText: string, questionCount: number): Promise<GeneratedQuiz> {
+  async generateQuiz(documentText: string, questionCount: number, userPrompt?: string): Promise<GeneratedQuiz> {
     if (!this.isAvailable()) {
       throw new Error('AI service is not configured. Please set GROQ_API_KEY environment variable.');
     }
@@ -173,7 +173,7 @@ The quiz should:
 - Each question should have 4 options
 - Each question should have exactly one correct answer
 - Each question should have an explanation for the correct answer
-
+${userPrompt ? `\nAdditional instructions from the user:\n${userPrompt}\n` : ''}
 Text to analyze:
 ${documentText.substring(0, 10000)}
 

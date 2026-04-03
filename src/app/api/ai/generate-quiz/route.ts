@@ -12,7 +12,7 @@ export const POST = withRateLimit(
       console.log('POST /api/ai/generate-quiz called for user:', user.id);
 
       const body = await request.json();
-      const { documentId, questionCount = 10 } = body;
+      const { documentId, questionCount = 10, userPrompt } = body;
 
       // Validate input
       if (!documentId) {
@@ -53,7 +53,7 @@ export const POST = withRateLimit(
       }
 
       // Generate quiz using AI
-      const quiz = await aiService.generateQuiz(document.extractedText, questionCount);
+      const quiz = await aiService.generateQuiz(document.extractedText, questionCount, userPrompt);
 
       console.log(`Generated quiz with ${quiz.questions.length} questions for document ${documentId}`);
       return NextResponse.json({ quiz, sourceMaterialId: documentId }, { status: 200 });

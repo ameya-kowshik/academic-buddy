@@ -49,6 +49,7 @@ export default function AIQuizGenerator({
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [questionCount, setQuestionCount] = useState(10);
+  const [userPrompt, setUserPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export default function AIQuizGenerator({
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ documentId, questionCount }),
+        body: JSON.stringify({ documentId, questionCount, userPrompt: userPrompt.trim() || undefined }),
       });
 
       if (!response.ok) {
@@ -216,6 +217,7 @@ export default function AIQuizGenerator({
     setOpen(false);
     setQuiz(null);
     setError(null);
+    setUserPrompt("");
     setEditingQuestionIndex(null);
     setEditedQuestion(null);
     setEditingMetadata(false);
@@ -260,6 +262,23 @@ export default function AIQuizGenerator({
                   onChange={(e) => setQuestionCount(parseInt(e.target.value) || 10)}
                   className="bg-slate-800/40 border-slate-600/50 text-slate-200 mt-2"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="userPrompt" className="text-slate-200">
+                  Custom instructions (optional)
+                </Label>
+                <Textarea
+                  id="userPrompt"
+                  placeholder="e.g. Focus on definitions and key concepts. Make questions application-based. Avoid trivial facts. Include scenario-based questions."
+                  value={userPrompt}
+                  onChange={(e) => setUserPrompt(e.target.value)}
+                  className="bg-slate-800/40 border-slate-600/50 text-slate-200 mt-2 resize-none"
+                  rows={3}
+                />
+                <p className="text-slate-500 text-xs mt-1">
+                  Tell the AI how you want the questions structured, what to focus on, or what style to use.
+                </p>
               </div>
 
               {error && (
@@ -506,21 +525,13 @@ export default function AIQuizGenerator({
                             </div>
                             <div className="text-sm space-y-1">
                               {question.options.map((option, optIndex) => (
-                                <div
-                                  key={optIndex}
-                                  className={
-                                    option === question.correctAnswer
-                                      ? "text-green-400"
-                                      : "text-slate-400"
-                                  }
-                                >
+                                <div key={optIndex} className="text-slate-400">
                                   {String.fromCharCode(65 + optIndex)}. {option}
-                                  {option === question.correctAnswer && " ✓"}
                                 </div>
                               ))}
                             </div>
-                            <p className="text-slate-500 text-xs italic">
-                              {question.explanation}
+                            <p className="text-slate-500 text-xs italic mt-1">
+                              Answer: {question.correctAnswer}
                             </p>
                           </div>
                         )}
