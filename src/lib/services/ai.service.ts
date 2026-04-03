@@ -329,6 +329,79 @@ Do not include any markdown formatting, code blocks, or additional text. Return 
   }
 
   /**
+   * Analyze a single quiz attempt's wrong answers to identify specific topic weak areas
+   * @param wrongQuestions - Array of questions the user got wrong with their answer and correct answer
+   * @returns Topic-level weak area analysis
+   */
+  async analyzeAttemptWeakAreas(wrongQuestions: Array<{
+    questionText: string;
+    selectedAnswer: string;
+    correctAnswer: string;
+    explanation: string;
+  }>): Promise<WeakAreaAnalysis> {
+    if (!this.isAvailable()) {
+      throw new Error('AI service is not configured. Please set GROQ_API_KEY environment variable.');
+    }
+
+    if (!wrongQuestions || wrongQuestions.length === 0) {
+      return { weakTopics: [], weakDifficulties: [], recommendations: [] };
+    }
+
+    try {
+      const prompt = `You are an educational performance analyst. A student got the following questions wrong in a quiz. Analyze the questions and identify the specific topics or concepts the student needs to improve on.
+
+Wrong answers:
+${wrongQuestions.map((q, i) => `
+Q${i + 1}: ${q.questionText}
+Student answered: ${q.selectedAnswer}
+Correct answer: ${q.correctAnswer}
+Explanation: ${q.explanation}
+`).join('\n')}
+
+Based on the questions the student got wrong, identify:
+1. The specific topics or concepts they are weak in (e.g. "Perceptrons", "Backpropagation", "Gradient Descent", "Activation Functions") — be specific and concise, not generic
+2. Personalized recommendations for each weak topic
+
+Return ONLY a valid JSON object with this exact structure:
+{
+  "weakTopics": ["topic1", "topic2"],
+  "weakDifficulties": [],
+  "recommendations": [
+    "Recommendation 1",
+    "Recommendation 2"
+  ]
+}
+
+Do not include any markdown formatting, code blocks, or additional text. Return only the JSON object.`;
+
+      const completion = await this.groq!.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: this.model,
+        temperature: 0.5,
+        max_tokens: 1024,
+      });
+
+      const text = completion.choices[0]?.message?.content || '';
+      const analysis = this.parseJSONResponse<WeakAreaAnalysis>(text);
+
+      if (!analysis.weakTopics || !analysis.recommendations) {
+        throw new Error('Invalid response format');
+      }
+
+      return {
+        weakTopics: analysis.weakTopics,
+        weakDifficulties: [],
+        recommendations: analysis.recommendations,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to analyze attempt weak areas: ${error.message}`);
+      }
+      throw new Error('Failed to analyze attempt weak areas: Unknown error');
+    }
+  }
+
+  /**
    * Parse JSON response from AI, handling markdown code blocks
    * @param text - Raw text response from AI
    * @returns Parsed JSON object
