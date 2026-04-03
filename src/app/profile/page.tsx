@@ -24,8 +24,6 @@ import {
   BookOpen,
   Coffee,
   BarChart3,
-  Lightbulb,
-  Loader,
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,48 +51,35 @@ function ProfilePageContent() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [stats, setStats] = useState<AnalyticsData | null>(null);
-  const [insight, setInsight] = useState("");
-  const [insightLoading, setInsightLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Fetch analytics and insights
+  // Fetch analytics
   useEffect(() => {
-    const fetchInsights = async () => {
+    const fetchStats = async () => {
       try {
         setStatsLoading(true);
-        setInsightLoading(true);
-        
-        // Get Firebase token for authentication
         const token = await user?.getIdToken();
-        
         const response = await fetch('/api/profile/insights', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch insights');
+          throw new Error(errorData.error || 'Failed to fetch stats');
         }
-        
         const data = await response.json();
         setStats(data.analytics);
-        setInsight(data.insight);
       } catch (err) {
-        console.error('Error fetching insights:', err);
-        // Don't show error for new users with no data
+        console.error('Error fetching stats:', err);
         if (err instanceof Error && !err.message.includes('No sessions')) {
           setError('Failed to load analytics');
         }
       } finally {
         setStatsLoading(false);
-        setInsightLoading(false);
       }
     };
 
     if (user) {
-      fetchInsights();
+      fetchStats();
     }
   }, [user]);
 
@@ -338,32 +323,6 @@ function ProfilePageContent() {
                 </CardContent>
               </Card>
             )}
-
-            {/* AI Insight Card */}
-            <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Lightbulb className="w-5 h-5 mr-2 text-purple-400" />
-                  Daily Insight
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {insightLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader className="w-5 h-5 text-purple-400 animate-spin mr-2" />
-                    <p className="text-slate-400">Generating insight...</p>
-                  </div>
-                ) : insight ? (
-                  <p className="text-slate-200 leading-relaxed italic">
-                    "{insight}"
-                  </p>
-                ) : (
-                  <p className="text-slate-400 leading-relaxed italic">
-                    Start your first focus session to get personalized insights!
-                  </p>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Stats Grid */}
             <div className="grid md:grid-cols-2 gap-4">

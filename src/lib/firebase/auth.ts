@@ -23,8 +23,16 @@ const getErrorMessage = (errorCode: string): string => {
       return "Invalid email address"
     case "auth/popup-closed-by-user":
       return "Sign-in cancelled"
+    case "auth/popup-blocked":
+      return "Popup was blocked by your browser. Please allow popups for this site."
+    case "auth/unauthorized-domain":
+      return "This domain is not authorized for Google sign-in. Add it to Firebase Console → Authentication → Authorized domains."
+    case "auth/cancelled-popup-request":
+      return "Sign-in cancelled"
+    case "auth/network-request-failed":
+      return "Network error. Check your connection and try again."
     default:
-      return "An error occurred. Please try again."
+      return `An error occurred. Please try again. (${errorCode})`
   }
 }
 

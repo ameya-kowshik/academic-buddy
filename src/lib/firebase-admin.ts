@@ -2,11 +2,20 @@ import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
-  // For production, use service account credentials
-  // For development, Firebase Admin can use Application Default Credentials
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : undefined;
+  let serviceAccount: admin.ServiceAccount | undefined;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    try {
+      // Support both raw JSON and base64-encoded JSON (for Vercel env vars)
+      const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.trim();
+      const decoded = raw.startsWith('{')
+        ? raw
+        : Buffer.from(raw, 'base64').toString('utf-8');
+      serviceAccount = JSON.parse(decoded);
+    } catch (e) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', e);
+    }
+  }
 
   admin.initializeApp({
     credential: serviceAccount
