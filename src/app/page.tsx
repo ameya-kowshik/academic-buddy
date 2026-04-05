@@ -158,10 +158,10 @@ export default function LandingPage() {
 
           <h1 className="text-5xl md:text-7xl font-bold mb-6 scroll-animate leading-tight">
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Preksha
+              Have Faith
             </span>
             <br />
-            <span className="text-slate-100">Shreya</span>
+            <span className="text-slate-100">in Your Studies</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed scroll-animate">
