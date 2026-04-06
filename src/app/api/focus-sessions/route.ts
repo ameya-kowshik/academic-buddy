@@ -50,31 +50,14 @@ export const GET = withRateLimit(requireAuth(async (request: NextRequest, contex
         notes: true,
         startedAt: true,
         completedAt: true,
-        taskId: true,
         tagId: true,
-        projectId: true,
         flashcardGrouping: true,
         quizId: true,
-        task: {
-          select: {
-            id: true,
-            title: true,
-            status: true
-          }
-        },
         tag: {
           select: {
             id: true,
             name: true,
             color: true
-          }
-        },
-        project: {
-          select: {
-            id: true,
-            title: true,
-            color: true,
-            icon: true
           }
         },
         quiz: {
@@ -126,28 +109,12 @@ export const POST = withRateLimit(requireAuth(
         sessionType, 
         focusScore, 
         notes, 
-        taskId, 
         tagId,
-        projectId,
         startedAt,
         completedAt,
         flashcardGrouping,
         quizId
       } = validatedData;
-
-      // Verify task ownership if taskId provided
-      if (taskId) {
-        const task = await prisma.task.findUnique({
-          where: { id: taskId }
-        });
-
-        if (!task || task.userId !== user.id) {
-          return NextResponse.json(
-            { error: 'Task not found or does not belong to user' },
-            { status: 400 }
-          );
-        }
-      }
 
       // Verify quiz ownership if quizId provided
       if (quizId) {
@@ -173,9 +140,7 @@ export const POST = withRateLimit(requireAuth(
           sessionType,
           focusScore: focusScore || null,
           notes: notes || null,
-          taskId: taskId || null,
           tagId: tagId || null,
-          projectId: projectId || null,
           flashcardGrouping: flashcardGrouping || null,
           quizId: quizId || null,
           userId: user.id,
@@ -190,31 +155,14 @@ export const POST = withRateLimit(requireAuth(
           notes: true,
           startedAt: true,
           completedAt: true,
-          taskId: true,
           tagId: true,
-          projectId: true,
           flashcardGrouping: true,
           quizId: true,
-          task: {
-            select: {
-              id: true,
-              title: true,
-              status: true
-            }
-          },
           tag: {
             select: {
               id: true,
               name: true,
               color: true
-            }
-          },
-          project: {
-            select: {
-              id: true,
-              title: true,
-              color: true,
-              icon: true
             }
           },
           quiz: {

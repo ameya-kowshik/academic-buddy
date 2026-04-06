@@ -1,12 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -26,79 +22,15 @@ model User {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  projects        Project[]
-  tasks           Task[]
   pomodoroLogs    PomodoroLog[]
   tags            Tag[]
   flashcards      Flashcard[]
   quizzes         Quiz[]
   analytics       Analytics[]
-  aiSuggestions   AISuggestion[]
   sourceMaterials SourceMaterial[]
 
   @@index([firebaseUid])
   @@map("users")
-}
-
-// Project management with Notion-like features
-model Project {
-  id              String        @id @default(cuid())
-  title           String
-  description     String?
-  status          ProjectStatus @default(ACTIVE)
-  priority        Priority      @default(MEDIUM)
-  startDate       DateTime?
-  dueDate         DateTime?
-  estimatedHours  Int? // Estimated time in hours
-  actualHours     Float         @default(0) // Calculated from focus sessions
-  color           String        @default("#3b82f6") // Hex color for project
-  icon            String? // Emoji or icon identifier
-  isArchived      Boolean       @default(false)
-  completedAt     DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  // Relations
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks        Task[]
-  pomodoroLogs PomodoroLog[]
-
-  @@index([userId, createdAt])
-  @@map("projects")
-}
-
-// Enhanced task management within projects
-model Task {
-  id               String     @id @default(cuid())
-  title            String
-  description      String?
-  status           TaskStatus @default(TODO)
-  priority         Priority   @default(MEDIUM)
-  estimatedMinutes Int? // Time estimate for this task
-  actualMinutes    Int        @default(0) // Calculated from focus sessions
-  dueDate          DateTime?
-  isRecurring      Boolean    @default(false)
-  recurringPattern String? // e.g., "daily", "weekly", "monthly"
-  order            Int        @default(0) // For ordering within project/status
-  tags             String[] // Custom tags
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  completedAt      DateTime?
-
-  // Relations
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId    String?
-  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  parentTaskId String? // For subtasks
-  parentTask   Task?         @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  subtasks     Task[]        @relation("TaskSubtasks")
-  pomodoroLogs PomodoroLog[]
-
-  @@index([userId, status])
-  @@index([projectId, order])
-  @@map("tasks")
 }
 
 // User-defined tags for categorizing sessions
@@ -114,32 +46,28 @@ model Tag {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pomodoroLogs PomodoroLog[]
 
-  @@unique([userId, name]) // Prevent duplicate tag names per user
+  @@unique([userId, name])
   @@map("tags")
 }
 
-// Enhanced focus session tracking with project integration
+// Focus session tracking
 model PomodoroLog {
-  id                  String    @id @default(cuid())
-  duration            Int // in minutes
-  focusScore          Int? // 1-10 rating
-  notes               String?
-  sessionType         String    @default("POMODORO") // POMODORO or STOPWATCH
-  startedAt           DateTime  @default(now())
-  completedAt         DateTime?
-  flashcardGrouping   String? // Link to flashcard grouping for study material tracking
-  quizId              String? // Link to quiz for study material tracking
+  id                String    @id @default(cuid())
+  duration          Int // in minutes
+  focusScore        Int? // 1-10 rating
+  notes             String?
+  sessionType       String    @default("POMODORO") // POMODORO or STOPWATCH
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+  flashcardGrouping String? // Link to flashcard grouping for study material tracking
+  quizId            String? // Link to quiz for study material tracking
 
   // Relations
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  taskId    String?
-  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
-  tagId     String?
-  tag       Tag?     @relation(fields: [tagId], references: [id], onDelete: SetNull)
-  quiz      Quiz?    @relation(fields: [quizId], references: [id], onDelete: SetNull)
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tagId  String?
+  tag    Tag?    @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  quiz   Quiz?   @relation(fields: [quizId], references: [id], onDelete: SetNull)
 
   @@index([userId, startedAt])
   @@index([flashcardGrouping])
@@ -151,9 +79,9 @@ model PomodoroLog {
 model SourceMaterial {
   id            String    @id @default(cuid())
   fileName      String
-  fileUrl       String // Storage URL (Supabase/local)
+  fileUrl       String
   fileSize      Int // Size in bytes
-  mimeType      String // application/pdf, text/plain, etc.
+  mimeType      String
   extractedText String? // OCR/extracted content
   tags          String[] // Custom tags for categorization
   uploadedAt    DateTime  @default(now())
@@ -218,8 +146,8 @@ model Quiz {
 model QuizQuestion {
   id            String   @id @default(cuid())
   questionText  String
-  options       Json // JSON array of options ["A) Option 1", "B) Option 2"]
-  correctAnswer String // "A) Option 1"
+  options       Json // JSON array of options
+  correctAnswer String
   explanation   String?
   order         Int // Question order within quiz
   createdAt     DateTime @default(now())
@@ -232,16 +160,16 @@ model QuizQuestion {
   @@map("quiz_questions")
 }
 
-// Track quiz attempts (now for entire quiz sessions)
+// Track quiz attempts (entire quiz sessions)
 model QuizAttempt {
-  id                String    @id @default(cuid())
-  score             Float // Percentage score (0.0 - 100.0)
-  totalQuestions    Int // Number of questions in quiz at time of attempt
-  correctAnswers    Int // Number of correct answers
-  timeSpent         Int? // Total time in seconds
-  startedAt         DateTime  @default(now())
-  completedAt       DateTime?
-  weakAreaAnalysis  Json? // Stored AI analysis: { weakTopics: string[], recommendations: string[] }
+  id               String    @id @default(cuid())
+  score            Float // Percentage score (0.0 - 100.0)
+  totalQuestions   Int
+  correctAnswers   Int
+  timeSpent        Int? // Total time in seconds
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  weakAreaAnalysis Json? // Stored AI analysis
 
   // Relations
   quizId           String
@@ -268,7 +196,7 @@ model QuizQuestionAttempt {
   @@map("quiz_question_attempts")
 }
 
-// Analytics and insights tracking
+// Daily analytics tracking (flashcard reviews, quiz completions)
 model Analytics {
   id                    String   @id @default(cuid())
   date                  DateTime @default(now()) @db.Date
@@ -286,58 +214,4 @@ model Analytics {
 
   @@unique([userId, date])
   @@map("analytics")
-}
-
-// AI suggestions and user responses
-model AISuggestion {
-  id          String           @id @default(cuid())
-  type        SuggestionType
-  content     Json // suggestion details
-  status      SuggestionStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  respondedAt DateTime?
-
-  // Relations
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("ai_suggestions")
-}
-
-// Enums
-enum ProjectStatus {
-  PLANNING
-  ACTIVE
-  ON_HOLD
-  COMPLETED
-  CANCELLED
-}
-
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  DONE
-  CANCELLED
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum SuggestionType {
-  RESCHEDULE_TASK
-  CREATE_FLASHCARD
-  CREATE_QUIZ
-  BREAK_REMINDER
-  STUDY_SESSION
-}
-
-enum SuggestionStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
 }

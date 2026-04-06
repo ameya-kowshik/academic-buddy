@@ -19,8 +19,6 @@ export const createFocusSessionSchema = z.object({
   notes: z.string().max(2000, 'Notes must be 2000 characters or less').optional().nullable(),
   startedAt: z.string().datetime().optional(),
   completedAt: z.string().datetime().optional().nullable(),
-  projectId: z.string().cuid().optional().nullable(),
-  taskId: z.string().cuid().optional().nullable(),
   tagId: z.string().cuid().optional().nullable(),
   flashcardGrouping: z.string().max(255, 'Flashcard grouping must be 255 characters or less').optional().nullable(),
   quizId: z.string().cuid().optional().nullable()
@@ -42,8 +40,6 @@ export const updateFocusSessionSchema = z.object({
     .nullable(),
   notes: z.string().max(2000, 'Notes must be 2000 characters or less').optional().nullable(),
   completedAt: z.string().datetime().optional().nullable(),
-  projectId: z.string().cuid().optional().nullable(),
-  taskId: z.string().cuid().optional().nullable(),
   tagId: z.string().cuid().optional().nullable(),
   flashcardGrouping: z.string().max(255, 'Flashcard grouping must be 255 characters or less').optional().nullable(),
   quizId: z.string().cuid().optional().nullable()
