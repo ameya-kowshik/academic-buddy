@@ -278,16 +278,14 @@ export default function WeekAnalytics({ sessions, tags, loading }: WeekAnalytics
               <div className="flex items-center justify-center">
                 <div className="relative">
                   <svg width="200" height="200" className="transform -rotate-90">
-                    {weeklyPieChartData?.map((segment, index) => (
-                      <path
-                        key={index}
-                        d={segment.pathData}
-                        fill={segment.tagColor}
-                        stroke="#1e293b"
-                        strokeWidth="2"
-                        className="hover:opacity-80 transition-opacity duration-200"
-                      />
-                    ))}
+                    {weeklyPieChartData?.length === 1 ? (
+                      <circle cx="100" cy="100" r="80" fill={weeklyPieChartData[0].tagColor} stroke="#0f172a" strokeWidth="2" />
+                    ) : (
+                      weeklyPieChartData?.map((segment, index) => (
+                        <path key={index} d={segment.pathData} fill={segment.tagColor} stroke="#0f172a" strokeWidth="2" className="hover:opacity-80 transition-opacity duration-200" />
+                      ))
+                    )}
+                    <circle cx="100" cy="100" r="48" fill="#0f172a" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -303,7 +301,7 @@ export default function WeekAnalytics({ sessions, tags, loading }: WeekAnalytics
           </CardContent>
         </Card>
 
-        {/* Weekly Tag Legend */}
+        {/* Tag Legend */}
         <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
             <CardTitle className="text-slate-100">Tag Breakdown</CardTitle>
@@ -318,19 +316,12 @@ export default function WeekAnalytics({ sessions, tags, loading }: WeekAnalytics
                 {weekStats.tagDistribution.map((tag, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: tag.tagColor }}
-                      />
+                      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: tag.tagColor }} />
                       <span className="text-slate-300 font-medium">{tag.tagName}</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-slate-100 font-medium">
-                        {analyticsUtils.formatDuration(tag.focusTime)}
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {tag.percentage.toFixed(1)}% • {tag.sessions} sessions
-                      </div>
+                      <div className="text-slate-100 font-medium">{analyticsUtils.formatDuration(tag.focusTime)}</div>
+                      <div className="text-xs text-slate-400">{tag.percentage.toFixed(1)}% • {tag.sessions} sessions</div>
                     </div>
                   </div>
                 ))}

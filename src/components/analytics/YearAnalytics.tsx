@@ -111,6 +111,32 @@ export default function YearAnalytics({ sessions, tags, loading }: YearAnalytics
     setSelectedYear(prev => direction === 'prev' ? prev - 1 : prev + 1);
   };
 
+  // Create pie chart data for yearly tag distribution
+  const yearlyPieChartData = useMemo(() => {
+    if (yearStats.tagDistribution.length === 0) return null;
+    let currentAngle = 0;
+    const radius = 80;
+    const centerX = 100;
+    const centerY = 100;
+    return yearStats.tagDistribution.map((tag) => {
+      const angle = (tag.percentage / 100) * 360;
+      const startRad = (currentAngle * Math.PI) / 180;
+      const endRad = ((currentAngle + angle) * Math.PI) / 180;
+      const x1 = centerX + radius * Math.cos(startRad);
+      const y1 = centerY + radius * Math.sin(startRad);
+      const x2 = centerX + radius * Math.cos(endRad);
+      const y2 = centerY + radius * Math.sin(endRad);
+      const pathData = [
+        `M ${centerX} ${centerY}`,
+        `L ${x1} ${y1}`,
+        `A ${radius} ${radius} 0 ${angle > 180 ? 1 : 0} 1 ${x2} ${y2}`,
+        'Z'
+      ].join(' ');
+      currentAngle += angle;
+      return { ...tag, pathData, percentage: tag.percentage.toFixed(1) };
+    });
+  }, [yearStats.tagDistribution]);
+
   // Find peak productivity month
   const peakMonth = yearStats.monthlyBreakdown.reduce((max, month) => 
     month.focusTime > max.focusTime ? month : max, 
@@ -345,6 +371,78 @@ export default function YearAnalytics({ sessions, tags, loading }: YearAnalytics
           )}
         </CardContent>
       </Card>
+
+      {/* Yearly Tag Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="bg-slate-900/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-slate-100 flex items-center">
+              <Target className="w-5 h-5 mr-2" />
+              Yearly Tag Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {yearStats.tagDistribution.length === 0 ? (
+              <div className="text-center text-slate-400 py-8">
+                <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No focus sessions</p>
+                <p className="text-sm">No data available for this year</p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center">
+                <div className="relative">
+                  <svg width="200" height="200" className="transform -rotate-90">
+                    {yearlyPieChartData?.length === 1 ? (
+                      <circle cx="100" cy="100" r="80" fill={yearlyPieChartData[0].tagColor} stroke="#0f172a" strokeWidth="2" />
+                    ) : (
+                      yearlyPieChartData?.map((segment, index) => (
+                        <path key={index} d={segment.pathData} fill={segment.tagColor} stroke="#0f172a" strokeWidth="2" className="hover:opacity-80 transition-opacity duration-200" />
+                      ))
+                    )}
+                    <circle cx="100" cy="100" r="48" fill="#0f172a" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-slate-100">
+                        {analyticsUtils.formatDuration(yearStats.totalFocusTime)}
+                      </div>
+                      <div className="text-xs text-slate-400">Total</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-900/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-slate-100">Tag Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {yearStats.tagDistribution.length === 0 ? (
+              <div className="text-center text-slate-400 py-8">
+                <p>No tags used this year</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {yearStats.tagDistribution.map((tag, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: tag.tagColor }} />
+                      <span className="text-slate-300 font-medium">{tag.tagName}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-slate-100 font-medium">{analyticsUtils.formatDuration(tag.focusTime)}</div>
+                      <div className="text-xs text-slate-400">{tag.percentage.toFixed(1)}% • {tag.sessions} sessions</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Yearly Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
