@@ -153,30 +153,7 @@ export function usePomodoro(initialSettings?: Partial<PomodoroSettings>) {
     };
   }, [state.isRunning, state.isPaused, settings]);
 
-  // Handle tab visibility changes to maintain timer accuracy
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Tab is hidden - pause the timer temporarily
-        if (state.isRunning && !state.isPaused) {
-          // Store the current time when tab becomes hidden
-          if (startTimeRef.current) {
-            const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-            pausedTimeRef.current += elapsed;
-            startTimeRef.current = null;
-          }
-        }
-      } else {
-        // Tab is visible again - resume the timer
-        if (state.isRunning && !state.isPaused) {
-          startTimeRef.current = Date.now();
-        }
-      }
-    };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [state.isRunning, state.isPaused]);
 
   const getPhaseColor = (phase: PomodoroPhase): string => {
     switch (phase) {
