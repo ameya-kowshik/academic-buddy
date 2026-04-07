@@ -16,7 +16,6 @@ import {
   Layers,
   HelpCircle,
   BookOpen,
-  Sparkles,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -47,14 +46,6 @@ const sections = [
       { name: "Flashcards", href: "/study/flashcards", icon: Layers, description: "Review & Practice" },
       { name: "Quizzes", href: "/study/quizzes", icon: HelpCircle, description: "Test Your Knowledge" },
       { name: "Study Analytics", href: "/study/analytics", icon: BookOpen, description: "Learning Insights" },
-    ],
-  },
-  {
-    label: "Reflection",
-    icon: Sparkles,
-    gradient: "from-violet-500 to-purple-500",
-    items: [
-      { name: "My Reflection", href: "/reflection", icon: Sparkles, description: "Weekly & Monthly Insights" },
     ],
   },
 ];

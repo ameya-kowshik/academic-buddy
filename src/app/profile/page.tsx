@@ -24,7 +24,11 @@ import {
   BookOpen,
   Coffee,
   BarChart3,
+  Sparkles,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
+import ReflectionDashboard from "@/components/agents/ReflectionDashboard";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -44,6 +48,7 @@ function ProfilePageContent() {
   const { user, loading: authLoading } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.displayName || "",
     email: user?.email || "",
@@ -502,7 +507,7 @@ function ProfilePageContent() {
             </Card>
 
             {/* Preferences */}
-            <Card className="bg-slate-900/50 border-slate-700/50">
+            <Card className="bg-slate-900/50 border-slate-700/50" id="preferences">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center">
                   <Settings className="w-5 h-5 mr-2 text-slate-400" />
@@ -559,6 +564,31 @@ function ProfilePageContent() {
                   />
                 </div>
               </CardContent>
+            </Card>
+
+            {/* Insights — My Reflections */}
+            <Card className="bg-slate-900/50 border-slate-700/50">
+              <CardHeader>
+                <button
+                  onClick={() => setInsightsOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <CardTitle className="text-lg flex items-center">
+                    <Sparkles className="w-5 h-5 mr-2 text-violet-400" />
+                    My Reflections
+                  </CardTitle>
+                  {insightsOpen ? (
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+              </CardHeader>
+              {insightsOpen && (
+                <CardContent className="pt-0">
+                  <ReflectionDashboard />
+                </CardContent>
+              )}
             </Card>
           </div>
         </div>
