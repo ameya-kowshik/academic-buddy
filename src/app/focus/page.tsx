@@ -23,6 +23,7 @@ import TimerControls from "@/components/focus/TimerControls";
 import SessionCompleteModal from "@/components/focus/SessionCompleteModal";
 import TagSelector from "@/components/focus/TagSelector";
 import TagManager from "@/components/focus/TagManager";
+import FocusCoachNotification from "@/components/agents/FocusCoachNotification";
 
 // Utils
 import { audioManager, notificationManager } from "@/lib/audio";
@@ -564,6 +565,8 @@ function FocusPageContent() {
         onDeleteTag={deleteTag}
         loading={sessionsLoading}
       />
+
+      <FocusCoachNotification />
     </div>
   );
 }

@@ -4,21 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { 
-  Timer, 
-  TrendingUp, 
-  ListTodo, 
-  Brain, 
-  LogOut, 
-  Menu, 
+import {
+  Timer,
+  TrendingUp,
+  Brain,
+  LogOut,
+  Menu,
   X,
   User,
-  Settings,
   BarChart3,
   FileText,
   Layers,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,63 +29,47 @@ interface SidebarProps {
   onToggleCollapse: (collapsed: boolean) => void;
 }
 
+const sections = [
+  {
+    label: "Focus",
+    icon: Timer,
+    gradient: "from-red-500 to-orange-500",
+    items: [
+      { name: "Focus Sessions", href: "/focus", icon: Timer, description: "Pomodoro & Focus Sessions" },
+      { name: "Focus Analytics", href: "/focus/analytics", icon: TrendingUp, description: "Productivity Insights" },
+      { name: "Productivity Analyst", href: "/focus/productivity-analyst", icon: BarChart3, description: "Weekly Analysis" },
+    ],
+  },
+  {
+    label: "Study",
+    icon: BookOpen,
+    gradient: "from-blue-500 to-cyan-500",
+    items: [
+      { name: "Documents", href: "/study/documents", icon: FileText, description: "Study Materials" },
+      { name: "Flashcards", href: "/study/flashcards", icon: Layers, description: "Review & Practice" },
+      { name: "Quizzes", href: "/study/quizzes", icon: HelpCircle, description: "Test Your Knowledge" },
+      { name: "Study Analytics", href: "/study/analytics", icon: BookOpen, description: "Learning Insights" },
+      { name: "Study Companion", href: "/study/companion", icon: Brain, description: "AI Study Guide" },
+    ],
+  },
+  {
+    label: "Reflection",
+    icon: Sparkles,
+    gradient: "from-violet-500 to-purple-500",
+    items: [
+      { name: "My Reflection", href: "/reflection", icon: Sparkles, description: "Weekly & Monthly Insights" },
+    ],
+  },
+];
+
 export default function Sidebar({ className = "", isCollapsed, onToggleCollapse }: SidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(sections.map((s) => s.label))
+  );
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
-
-  const navigation = [
-    {
-      name: "Focus",
-      href: "/focus",
-      icon: Timer,
-      description: "Pomodoro & Focus Sessions",
-      gradient: "from-red-500 to-orange-500"
-    },
-    {
-      name: "Focus Analytics",
-      href: "/focus/analytics",
-      icon: TrendingUp,
-      description: "Productivity Insights",
-      gradient: "from-emerald-500 to-teal-500"
-    },
-    {
-      name: "Documents",
-      href: "/study/documents",
-      icon: FileText,
-      description: "Study Materials",
-      gradient: "from-blue-500 to-cyan-500"
-    },
-    {
-      name: "Flashcards",
-      href: "/study/flashcards",
-      icon: Layers,
-      description: "Review & Practice",
-      gradient: "from-violet-500 to-purple-500"
-    },
-    {
-      name: "Quizzes",
-      href: "/study/quizzes",
-      icon: HelpCircle,
-      description: "Test Your Knowledge",
-      gradient: "from-amber-500 to-orange-500"
-    },
-    {
-      name: "Study Analytics",
-      href: "/study/analytics",
-      icon: BookOpen,
-      description: "Learning Insights",
-      gradient: "from-pink-500 to-rose-500"
-    },
-    {
-      name: "Profile",
-      href: "/profile",
-      icon: User,
-      description: "Account & Settings",
-      gradient: "from-purple-500 to-pink-500"
-    }
-  ];
 
   const handleSignOut = async () => {
     try {
@@ -96,10 +81,20 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
   };
 
   const isActive = (href: string) => {
-    if (href === "/focus") {
-      return pathname === "/focus";
-    }
+    if (href === "/focus") return pathname === "/focus";
     return pathname.startsWith(href);
+  };
+
+  const toggleSection = (label: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
   };
 
   return (
@@ -116,37 +111,39 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed left-0 top-0 h-full bg-slate-950/95 border-r border-slate-800/50 backdrop-blur-sm z-40
-        transition-all duration-300 ease-in-out shadow-xl
-        ${isCollapsed ? 'w-16' : 'w-64'}
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        ${className}
-      `}>
+      <aside
+        className={`
+          fixed left-0 top-0 h-full bg-slate-950/95 border-r border-slate-800/50 backdrop-blur-sm z-40
+          transition-all duration-300 ease-in-out shadow-xl
+          ${isCollapsed ? "w-16" : "w-64"}
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${className}
+        `}
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-4 border-b border-slate-800/50">
             <div className="flex items-center justify-between">
-              {/* Logo and Title */}
-              <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'justify-center w-full' : 'space-x-3 flex-1'}`}>
+              <div
+                className={`flex items-center transition-all duration-300 ${
+                  isCollapsed ? "justify-center w-full" : "space-x-3 flex-1"
+                }`}
+              >
                 <div className="w-8 h-8 bg-gradient-to-br from-violet-500 via-blue-500 to-cyan-400 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
                 {!isCollapsed && (
-                  <span className="text-lg font-semibold text-slate-100 truncate">
-                    Veyra
-                  </span>
+                  <span className="text-lg font-semibold text-slate-100 truncate">Veyra</span>
                 )}
               </div>
-              
-              {/* Collapse/Expand Button */}
+
               {!isCollapsed && (
                 <Button
                   onClick={() => onToggleCollapse(!isCollapsed)}
@@ -159,8 +156,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
                 </Button>
               )}
             </div>
-            
-            {/* Expand Button for Collapsed State */}
+
             {isCollapsed && (
               <div className="flex justify-center mt-2">
                 <Button
@@ -177,46 +173,99 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navigation.map((item) => {
-              const active = isActive(item.href);
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            {sections.map((section) => {
+              const SectionIcon = section.icon;
+              const isOpen = openSections.has(section.label);
+              const sectionActive = section.items.some((item) => isActive(item.href));
+
               return (
-                <div key={item.name} className="relative group">
-                  <Link
-                    href={item.href}
-                    onClick={(e) => {
-                      console.log('Navigation clicked:', item.name, 'Collapsed state:', isCollapsed);
-                      // Only close mobile menu, don't affect collapsed state
-                      setIsMobileOpen(false);
-                      // Prevent any potential event bubbling that might trigger collapse
-                      e.stopPropagation();
-                    }}
-                    className={`
-                      flex items-center px-3 py-3 rounded-lg transition-all duration-200
-                      ${active 
-                        ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg` 
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
-                      }
-                      ${isCollapsed ? 'justify-center' : 'space-x-3'}
-                    `}
-                  >
-                    <item.icon className={`flex-shrink-0 transition-transform duration-200 group-hover:scale-110 w-5 h-5`} />
-                    {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{item.name}</div>
-                        <div className={`text-xs truncate ${
-                          active ? 'text-white/80' : 'text-slate-500 group-hover:text-slate-400'
-                        }`}>
-                          {item.description}
-                        </div>
+                <div key={section.label}>
+                  {/* Section Header */}
+                  {isCollapsed ? (
+                    /* Collapsed: show section icon with tooltip */
+                    <div className="relative group mb-1">
+                      <div
+                        className={`flex items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 cursor-default ${
+                          sectionActive
+                            ? `bg-gradient-to-r ${section.gradient} text-white shadow-lg`
+                            : "text-slate-500"
+                        }`}
+                      >
+                        <SectionIcon className="w-4 h-4 flex-shrink-0" />
                       </div>
-                    )}
-                  </Link>
-                  
-                  {/* Tooltip for collapsed state */}
-                  {isCollapsed && (
-                    <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
-                      {item.name}
+                      <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
+                        {section.label}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Expanded: clickable section toggle */
+                    <button
+                      onClick={() => toggleSection(section.label)}
+                      className="w-full flex items-center justify-between px-3 py-3 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 transition-all duration-200 group"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <SectionIcon className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-xs font-semibold uppercase tracking-wider">
+                          {section.label}
+                        </span>
+                      </div>
+                      {isOpen ? (
+                        <ChevronDown className="w-3 h-3 transition-transform duration-200" />
+                      ) : (
+                        <ChevronRight className="w-3 h-3 transition-transform duration-200" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Section Items */}
+                  {(isCollapsed || isOpen) && (
+                    <div className={isCollapsed ? "space-y-1" : "ml-2 space-y-0.5 mt-0.5"}>
+                      {section.items.map((item) => {
+                        const active = isActive(item.href);
+                        const ItemIcon = item.icon;
+                        return (
+                          <div key={item.name} className="relative group">
+                            <Link
+                              href={item.href}
+                              onClick={(e) => {
+                                setIsMobileOpen(false);
+                                e.stopPropagation();
+                              }}
+                              className={`
+                                flex items-center rounded-lg transition-all duration-200
+                                ${isCollapsed ? "px-2 py-2 justify-center" : "px-3 py-2 space-x-3"}
+                                ${
+                                  active
+                                    ? `bg-gradient-to-r ${section.gradient} text-white shadow-lg`
+                                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+                                }
+                              `}
+                            >
+                              <ItemIcon className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110 w-4 h-4" />
+                              {!isCollapsed && (
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium truncate">{item.name}</div>
+                                  <div
+                                    className={`text-xs truncate ${
+                                      active ? "text-white/80" : "text-slate-500 group-hover:text-slate-400"
+                                    }`}
+                                  >
+                                    {item.description}
+                                  </div>
+                                </div>
+                              )}
+                            </Link>
+
+                            {/* Tooltip for collapsed state */}
+                            {isCollapsed && (
+                              <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
+                                {item.name}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -236,9 +285,7 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
                     <div className="text-sm font-medium text-slate-100 truncate">
                       {user.displayName || "User"}
                     </div>
-                    <div className="text-xs text-slate-400 truncate">
-                      {user.email}
-                    </div>
+                    <div className="text-xs text-slate-400 truncate">{user.email}</div>
                   </div>
                 </div>
               </div>
@@ -249,10 +296,12 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
                 <Link
                   href="/profile"
                   onClick={() => setIsMobileOpen(false)}
-                  className="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all duration-200"
+                  className={`flex items-center px-3 py-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-all duration-200 ${
+                    isCollapsed ? "justify-center" : "space-x-2"
+                  }`}
                 >
                   <User className="w-4 h-4" />
-                  {!isCollapsed && <span className="ml-2 text-sm">Profile</span>}
+                  {!isCollapsed && <span className="text-sm">Profile</span>}
                 </Link>
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-slate-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
@@ -260,14 +309,14 @@ export default function Sidebar({ className = "", isCollapsed, onToggleCollapse 
                   </div>
                 )}
               </div>
-              
+
               <div className="relative group">
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
                   size="sm"
                   className={`w-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 ${
-                    isCollapsed ? 'px-2' : 'justify-start'
+                    isCollapsed ? "px-2" : "justify-start"
                   }`}
                 >
                   <LogOut className="w-4 h-4" />
