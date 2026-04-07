@@ -13,21 +13,25 @@ datasource db {
 
 // User model for authentication and profile
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  profilePic  String?
-  firebaseUid String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                        String   @id @default(cuid())
+  email                     String   @unique
+  name                      String?
+  profilePic                String?
+  firebaseUid               String?  @unique
+  emailNotificationsEnabled Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
   // Relations
-  pomodoroLogs    PomodoroLog[]
-  tags            Tag[]
-  flashcards      Flashcard[]
-  quizzes         Quiz[]
-  analytics       Analytics[]
-  sourceMaterials SourceMaterial[]
+  pomodoroLogs      PomodoroLog[]
+  tags              Tag[]
+  flashcards        Flashcard[]
+  quizzes           Quiz[]
+  analytics         Analytics[]
+  sourceMaterials   SourceMaterial[]
+  agentExecutions   AgentExecution[]
+  agentOutputs      AgentOutput[]
+  flashcardSessions FlashcardSession[]
 
   @@index([firebaseUid])
   @@map("users")
@@ -214,4 +218,77 @@ model Analytics {
 
   @@unique([userId, date])
   @@map("analytics")
+}
+
+// Enums for agent system
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+enum AgentOutputType {
+  SUGGESTION
+  INSIGHT
+  RECOMMENDATION
+  REFLECTION
+  WARNING
+}
+
+// Tracks one run of an agent
+model AgentExecution {
+  id          String          @id @default(cuid())
+  agentId     String
+  userId      String
+  eventType   String
+  status      ExecutionStatus @default(PENDING)
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  error       String?
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outputs AgentOutput[]
+
+  @@index([userId, agentId, startedAt])
+  @@map("agent_executions")
+}
+
+// Stores structured output from an agent run
+model AgentOutput {
+  id             String          @id @default(cuid())
+  agentId        String
+  userId         String
+  executionId    String
+  outputType     AgentOutputType
+  content        Json
+  explainability Json
+  confidence     Float?
+  viewed         Boolean         @default(false)
+  viewedAt       DateTime?
+  dismissed      Boolean         @default(false)
+  dismissedAt    DateTime?
+  createdAt      DateTime        @default(now())
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  execution AgentExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, agentId, createdAt])
+  @@map("agent_outputs")
+}
+
+// Tracks flashcard review sessions for study time calculations
+model FlashcardSession {
+  id                 String    @id @default(cuid())
+  userId             String
+  grouping           String?
+  cardCount          Int       @default(0)
+  sessionStartedAt   DateTime
+  sessionCompletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sessionStartedAt])
+  @@map("flashcard_sessions")
 }
