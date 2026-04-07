@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,27 @@ export default function FlashcardReview({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const sessionStartedAt = useRef<Date>(new Date());
+
+  // Record flashcard session on unmount
+  useEffect(() => {
+    return () => {
+      const cardCount = flashcards.length;
+      if (cardCount > 0) {
+        const grouping = flashcards[0]?.grouping ?? null;
+        fetch("/api/flashcard-sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            grouping,
+            cardCount,
+            sessionStartedAt: sessionStartedAt.current,
+            sessionCompletedAt: new Date(),
+          }),
+        }).catch((err) => console.error("Failed to record flashcard session:", err));
+      }
+    };
+  }, []);
 
   const currentCard = flashcards[currentIndex];
   const hasNext = currentIndex < flashcards.length - 1;

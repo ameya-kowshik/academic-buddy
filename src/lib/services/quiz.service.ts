@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { Quiz, QuizQuestion, QuizAttempt, QuizQuestionAttempt } from '@prisma/client';
 import { analyticsService } from './analytics.service';
+import { eventBus } from '@/lib/agents/index';
+import { AgentEventType } from '@/lib/agents/base/Agent';
 
 /**
  * Input type for creating a quiz
@@ -502,6 +504,14 @@ export class QuizService {
 
     // Record in analytics
     await analyticsService.recordQuizCompletion(attempt.quiz.userId, completedAt);
+
+    // Fire Study Companion agent (fire-and-forget)
+    void eventBus.publishEvent({
+      type: AgentEventType.QUIZ_COMPLETED,
+      userId: attempt.quiz.userId,
+      timestamp: new Date(),
+      payload: { attemptId },
+    });
 
     return updatedAttempt;
   }

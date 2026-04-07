@@ -12,7 +12,6 @@ import {
   Menu,
   X,
   User,
-  BarChart3,
   FileText,
   Layers,
   HelpCircle,
@@ -37,7 +36,6 @@ const sections = [
     items: [
       { name: "Focus Sessions", href: "/focus", icon: Timer, description: "Pomodoro & Focus Sessions" },
       { name: "Focus Analytics", href: "/focus/analytics", icon: TrendingUp, description: "Productivity Insights" },
-      { name: "Productivity Analyst", href: "/focus/productivity-analyst", icon: BarChart3, description: "Weekly Analysis" },
     ],
   },
   {
@@ -49,7 +47,6 @@ const sections = [
       { name: "Flashcards", href: "/study/flashcards", icon: Layers, description: "Review & Practice" },
       { name: "Quizzes", href: "/study/quizzes", icon: HelpCircle, description: "Test Your Knowledge" },
       { name: "Study Analytics", href: "/study/analytics", icon: BookOpen, description: "Learning Insights" },
-      { name: "Study Companion", href: "/study/companion", icon: Brain, description: "AI Study Guide" },
     ],
   },
   {
