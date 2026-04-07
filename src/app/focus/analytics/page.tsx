@@ -12,9 +12,11 @@ import {
   Calendar,
   TrendingUp,
   Clock,
-  Target
+  Target,
+  Brain
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
+import RecentCoachTips from "@/components/agents/RecentCoachTips";
 
 // Hooks
 import { useFocusSessions } from "@/hooks/useFocusSessions";
@@ -177,6 +179,28 @@ function FocusAnalyticsPageContent() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* Recent Coach Tips */}
+        <section className="mt-10">
+          <Card className="bg-slate-900/50 border-slate-700/50">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-md flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-white" />
+                </div>
+                <CardTitle className="text-base font-semibold text-slate-100">
+                  Recent Coach Tips
+                </CardTitle>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Personalized suggestions from your last focus sessions. Dismissed tips are hidden.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <RecentCoachTips />
+            </CardContent>
+          </Card>
+        </section>
       </main>
     </div>
   );
