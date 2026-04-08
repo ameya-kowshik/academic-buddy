@@ -29,3 +29,4 @@ registry.registerAgent(reflectionAgent, [
 ]);
 
 export const eventBus = new EventBus(registry, outputStorage);
+export const outputStorageService = outputStorage;
