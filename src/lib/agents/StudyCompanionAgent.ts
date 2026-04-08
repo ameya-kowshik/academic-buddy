@@ -7,6 +7,7 @@ import {
   AgentOutput,
   AgentOutputType,
 } from './base/Agent';
+import { EmailService } from './core/EmailService';
 import { OutputStorageService } from './core/OutputStorageService';
 
 type ProgressTrend = 'IMPROVING' | 'DECLINING' | 'STABLE' | 'FIRST_ATTEMPT';
@@ -66,7 +67,10 @@ export class StudyCompanionAgent extends Agent {
   readonly id = 'study-companion';
   readonly name = 'Study Companion';
 
-  constructor(private readonly outputStorage: OutputStorageService) {
+  constructor(
+    private readonly outputStorage: OutputStorageService,
+    private readonly emailService: EmailService,
+  ) {
     super();
   }
 
@@ -288,7 +292,7 @@ export class StudyCompanionAgent extends Agent {
       topicsNeedingAttention,
     };
 
-    return {
+    const weeklyOutput: AgentOutput = {
       agentId: this.id,
       userId: input.userId,
       outputType: AgentOutputType.INSIGHT,
@@ -312,6 +316,11 @@ export class StudyCompanionAgent extends Agent {
       timestamp: new Date(),
       confidence: totalQuizAttempts >= 3 ? 0.8 : totalQuizAttempts >= 1 ? 0.55 : 0.3,
     };
+
+    // Send weekly study email (fire-and-forget)
+    void this.emailService.sendWeeklyStudyReport(input.userId, content);
+
+    return weeklyOutput;
   }
 
   private extractKeywords(texts: string[]): string[] {

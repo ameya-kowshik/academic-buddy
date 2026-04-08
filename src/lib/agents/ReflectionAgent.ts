@@ -7,6 +7,7 @@ import {
   AgentOutput,
   AgentOutputType,
 } from './base/Agent';
+import { EmailService } from './core/EmailService';
 import { OutputStorageService } from './core/OutputStorageService';
 
 type PeriodType = 'WEEKLY' | 'MONTHLY';
@@ -154,7 +155,10 @@ export class ReflectionAgent extends Agent {
   readonly id = 'reflection';
   readonly name = 'Reflection Agent';
 
-  constructor(private readonly outputStorage: OutputStorageService) {
+  constructor(
+    private readonly outputStorage: OutputStorageService,
+    private readonly emailService: EmailService,
+  ) {
     super();
   }
 
@@ -462,7 +466,7 @@ export class ReflectionAgent extends Agent {
       ...agentOutputs.map((o) => `${o.agentId}:${o.createdAt.toISOString()}`),
     ];
 
-    return {
+    const reflectionOutput: AgentOutput = {
       agentId: this.id,
       userId: input.userId,
       outputType: AgentOutputType.REFLECTION,
@@ -490,5 +494,11 @@ export class ReflectionAgent extends Agent {
           ? 0.6
           : 0.35,
     };
+
+    // Send reflection email (fire-and-forget)
+    const emailPeriod = periodType === 'MONTHLY' ? 'monthly' : 'weekly';
+    void this.emailService.sendReflectionReport(input.userId, result, emailPeriod);
+
+    return reflectionOutput;
   }
 }

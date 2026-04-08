@@ -49,6 +49,7 @@ function ProfilePageContent() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.displayName || "",
     email: user?.email || "",
@@ -87,6 +88,43 @@ function ProfilePageContent() {
       fetchStats();
     }
   }, [user]);
+
+  // Fetch email notification preference
+  useEffect(() => {
+    const fetchEmailPref = async () => {
+      try {
+        const token = await user?.getIdToken();
+        const res = await fetch('/api/profile', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEmailNotificationsEnabled(data.emailNotificationsEnabled ?? false);
+        }
+      } catch (err) {
+        console.error('Error fetching email preference:', err);
+      }
+    };
+    if (user) fetchEmailPref();
+  }, [user]);
+
+  const handleEmailNotificationsChange = async (enabled: boolean) => {
+    setEmailNotificationsEnabled(enabled);
+    try {
+      const token = await user?.getIdToken();
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emailNotificationsEnabled: enabled }),
+      });
+    } catch (err) {
+      console.error('Error saving email preference:', err);
+      setEmailNotificationsEnabled(!enabled);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -526,7 +564,8 @@ function ProfilePageContent() {
                   </div>
                   <input
                     type="checkbox"
-                    defaultChecked
+                    checked={emailNotificationsEnabled}
+                    onChange={(e) => handleEmailNotificationsChange(e.target.checked)}
                     className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
                   />
                 </div>

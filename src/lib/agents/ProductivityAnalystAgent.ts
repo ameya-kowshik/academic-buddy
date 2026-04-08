@@ -6,6 +6,7 @@ import {
   AgentOutput,
   AgentOutputType,
 } from './base/Agent';
+import { EmailService } from './core/EmailService';
 import { OutputStorageService } from './core/OutputStorageService';
 
 interface PomodoroLogEntry {
@@ -139,7 +140,10 @@ export class ProductivityAnalystAgent extends Agent {
   readonly id = 'productivity-analyst';
   readonly name = 'Productivity Analyst';
 
-  constructor(private readonly outputStorage: OutputStorageService) {
+  constructor(
+    private readonly outputStorage: OutputStorageService,
+    private readonly emailService: EmailService,
+  ) {
     super();
   }
 
@@ -315,7 +319,7 @@ export class ProductivityAnalystAgent extends Agent {
       insights,
     };
 
-    return {
+    const agentOutput: AgentOutput = {
       agentId: this.id,
       userId: input.userId,
       outputType: AgentOutputType.INSIGHT,
@@ -345,5 +349,10 @@ export class ProductivityAnalystAgent extends Agent {
           ? 0.7
           : 0.4,
     };
+
+    // Send email report (fire-and-forget, failures must not surface)
+    void this.emailService.sendWeeklyProductivityReport(input.userId, result);
+
+    return agentOutput;
   }
 }
