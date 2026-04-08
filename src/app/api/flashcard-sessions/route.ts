@@ -10,13 +10,20 @@ export const POST = withRateLimit(requireAuth(async (request: NextRequest, _cont
     const body = await request.json();
     const { grouping, cardCount, sessionStartedAt, sessionCompletedAt } = body;
 
+    const startDate = new Date(sessionStartedAt);
+    const endDate = sessionCompletedAt ? new Date(sessionCompletedAt) : null;
+    const durationSeconds = endDate
+      ? Math.round((endDate.getTime() - startDate.getTime()) / 1000)
+      : null;
+
     const session = await prisma.flashcardSession.create({
       data: {
         userId: user.id,
         grouping: grouping ?? null,
         cardCount: cardCount ?? 0,
-        sessionStartedAt: new Date(sessionStartedAt),
-        sessionCompletedAt: sessionCompletedAt ? new Date(sessionCompletedAt) : null,
+        durationSeconds,
+        sessionStartedAt: startDate,
+        sessionCompletedAt: endDate,
       },
     });
 

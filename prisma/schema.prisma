@@ -284,6 +284,7 @@ model FlashcardSession {
   userId             String
   grouping           String?
   cardCount          Int       @default(0)
+  durationSeconds    Int?      // Computed: sessionCompletedAt - sessionStartedAt in seconds
   sessionStartedAt   DateTime
   sessionCompletedAt DateTime?
 

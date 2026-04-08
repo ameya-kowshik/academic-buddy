@@ -24,13 +24,14 @@ export class OutputStorageService {
 
   async getOutputsByUser(
     userId: string,
-    filters?: { agentId?: string; limit?: number }
+    filters?: { agentId?: string; outputType?: string; limit?: number }
   ) {
     return prisma.agentOutput.findMany({
       where: {
         userId,
         dismissed: false,
         ...(filters?.agentId ? { agentId: filters.agentId } : {}),
+        ...(filters?.outputType ? { outputType: filters.outputType as any } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: filters?.limit ?? 10,

@@ -39,7 +39,7 @@ interface QuizTriggerContext {
       quizQuestion: { questionText: string };
     }>;
   };
-  previousAttempts: Array<{ score: number; startedAt: Date }>;
+  previousAttempts: Array<{ id: string; score: number; startedAt: Date }>;
 }
 
 interface WeeklyTriggerContext {
@@ -47,6 +47,7 @@ interface WeeklyTriggerContext {
   flashcardSessions: Array<{
     id: string;
     cardCount: number;
+    durationSeconds: number | null;
     sessionStartedAt: Date;
   }>;
   quizAttempts: Array<{
@@ -91,7 +92,7 @@ export class StudyCompanionAgent extends Agent {
         where: { quizId: attempt.quizId },
         orderBy: { startedAt: 'desc' },
         take: 5,
-        select: { score: true, startedAt: true },
+        select: { id: true, score: true, startedAt: true },
       });
 
       return {
@@ -111,7 +112,7 @@ export class StudyCompanionAgent extends Agent {
 
     const flashcardSessions = await prisma.flashcardSession.findMany({
       where: { userId, sessionStartedAt: { gte: sevenDaysAgo } },
-      select: { id: true, cardCount: true, sessionStartedAt: true },
+      select: { id: true, cardCount: true, durationSeconds: true, sessionStartedAt: true },
     });
 
     const quizAttempts = await prisma.quizAttempt.findMany({
@@ -161,7 +162,7 @@ export class StudyCompanionAgent extends Agent {
     );
 
     // Compute progress trend
-    const progressTrend = this.computeProgressTrend(score, previousAttempts);
+    const progressTrend = this.computeProgressTrend(attempt.id, score, previousAttempts);
 
     // Determine priority based on score
     const priority: Priority = score < 50 ? 'HIGH' : score <= 70 ? 'MEDIUM' : 'LOW';
@@ -232,6 +233,9 @@ export class StudyCompanionAgent extends Agent {
 
     const totalFlashcardSessions = flashcardSessions.length;
     const totalFlashcardCards = flashcardSessions.reduce((sum, s) => sum + s.cardCount, 0);
+    const totalFlashcardMinutes = Math.round(
+      flashcardSessions.reduce((sum, s) => sum + (s.durationSeconds ?? 0), 0) / 60
+    );
     const totalQuizAttempts = quizAttempts.length;
     const avgQuizScore =
       totalQuizAttempts > 0
@@ -276,6 +280,7 @@ export class StudyCompanionAgent extends Agent {
       weekSummary: {
         totalFlashcardSessions,
         totalFlashcardCards,
+        totalFlashcardMinutes,
         totalQuizAttempts,
         avgQuizScore,
       },
@@ -298,6 +303,7 @@ export class StudyCompanionAgent extends Agent {
         keyFactors: {
           totalFlashcardSessions,
           totalFlashcardCards,
+          totalFlashcardMinutes,
           totalQuizAttempts,
           avgQuizScore,
           materialsTracked: materialPerformance.length,
@@ -326,11 +332,14 @@ export class StudyCompanionAgent extends Agent {
   }
 
   private computeProgressTrend(
+    currentAttemptId: string,
     currentScore: number,
-    previousAttempts: Array<{ score: number; startedAt: Date }>
+    previousAttempts: Array<{ id?: string; score: number; startedAt: Date }>
   ): ProgressTrend {
-    // previousAttempts includes the current attempt (ordered desc), so skip index 0
-    const prior = previousAttempts.filter((a) => a.score !== currentScore).slice(0, 4);
+    // Exclude the current attempt by ID to avoid counting it twice
+    const prior = previousAttempts
+      .filter((a) => a.id !== currentAttemptId)
+      .slice(0, 4);
     if (prior.length === 0) return 'FIRST_ATTEMPT';
 
     const prevAvg = prior.reduce((s, a) => s + a.score, 0) / prior.length;

@@ -8,9 +8,10 @@ export const GET = requireAuth(async (request: NextRequest, context, user: User)
   try {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId') ?? undefined;
+    const outputType = searchParams.get('outputType') ?? undefined;
     const limit = parseInt(searchParams.get('limit') ?? '10', 10);
 
-    const outputs = await outputStorageService.getOutputsByUser(user.id, { agentId, limit });
+    const outputs = await outputStorageService.getOutputsByUser(user.id, { agentId, outputType, limit });
 
     return NextResponse.json({ outputs });
   } catch (error) {
