@@ -2,6 +2,7 @@ import { AgentEventType } from './base/Agent';
 import { AgentRegistry } from './core/AgentRegistry';
 import { EventBus } from './core/EventBus';
 import { OutputStorageService } from './core/OutputStorageService';
+import { ScheduledTriggerService } from './core/ScheduledTriggerService';
 import { FocusCoachAgent } from './FocusCoachAgent';
 import { ProductivityAnalystAgent } from './ProductivityAnalystAgent';
 import { ReflectionAgent } from './ReflectionAgent';
@@ -30,3 +31,4 @@ registry.registerAgent(reflectionAgent, [
 
 export const eventBus = new EventBus(registry, outputStorage);
 export const outputStorageService = outputStorage;
+export const scheduledTriggerService = new ScheduledTriggerService(eventBus);
