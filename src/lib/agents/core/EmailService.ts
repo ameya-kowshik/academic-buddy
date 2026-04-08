@@ -1,9 +1,20 @@
-import { Resend } from 'resend';
+import { BrevoClient } from '@getbrevo/brevo';
 import { prisma } from '@/lib/prisma';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'noreply@academic-buddy.app';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const FROM_EMAIL = process.env.BREVO_FROM_EMAIL ?? '';
+const FROM_NAME = 'Veyra';
+
+// Lazily initialised so the module can be imported without a key present
+let _client: BrevoClient | null = null;
+function getClient(): BrevoClient {
+  if (!_client) {
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) throw new Error('[EmailService] BREVO_API_KEY is not set');
+    _client = new BrevoClient({ apiKey });
+  }
+  return _client;
+}
 
 interface UserEmailPrefs {
   email: string;
@@ -71,6 +82,15 @@ export class EmailService {
     };
   }
 
+  private async send(to: string, toName: string, subject: string, html: string): Promise<void> {
+    await getClient().transactionalEmails.sendTransacEmail({
+      sender: { email: FROM_EMAIL, name: FROM_NAME },
+      to: [{ email: to, name: toName }],
+      subject,
+      htmlContent: html,
+    });
+  }
+
   async sendWeeklyProductivityReport(userId: string, data: ProductivityReportData): Promise<void> {
     const prefs = await this.getUserEmailPrefs(userId);
     if (!prefs || !prefs.notificationsEnabled) return;
@@ -133,12 +153,12 @@ export class EmailService {
 </html>`;
 
     try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: prefs.email,
-        subject: `Your Weekly Productivity Report — Score: ${data.weeklyScore.toFixed(0)}/100`,
+      await this.send(
+        prefs.email,
+        prefs.name,
+        `Your Weekly Productivity Report — Score: ${data.weeklyScore.toFixed(0)}/100`,
         html,
-      });
+      );
     } catch (err) {
       console.error('[EmailService] Failed to send productivity report:', err);
     }
@@ -203,12 +223,12 @@ export class EmailService {
 </html>`;
 
     try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: prefs.email,
-        subject: `Your Weekly Study Report — ${data.weekSummary.totalQuizAttempts} quiz${data.weekSummary.totalQuizAttempts !== 1 ? 'zes' : ''} completed`,
+      await this.send(
+        prefs.email,
+        prefs.name,
+        `Your Weekly Study Report — ${data.weekSummary.totalQuizAttempts} quiz${data.weekSummary.totalQuizAttempts !== 1 ? 'zes' : ''} completed`,
         html,
-      });
+      );
     } catch (err) {
       console.error('[EmailService] Failed to send study report:', err);
     }
@@ -275,12 +295,12 @@ export class EmailService {
 </html>`;
 
     try {
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: prefs.email,
-        subject: `Your ${periodLabel} Reflection — ${startDate} to ${endDate}`,
+      await this.send(
+        prefs.email,
+        prefs.name,
+        `Your ${periodLabel} Reflection — ${startDate} to ${endDate}`,
         html,
-      });
+      );
     } catch (err) {
       console.error('[EmailService] Failed to send reflection report:', err);
     }
