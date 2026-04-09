@@ -55,7 +55,7 @@ export class ScheduledTriggerService {
   private async getActiveUserIds(since: Date): Promise<string[]> {
     const [pomodoroUsers, quizUsers] = await Promise.all([
       prisma.pomodoroLog.findMany({
-        where: { createdAt: { gte: since } },
+        where: { startedAt: { gte: since } },
         select: { userId: true },
         distinct: ['userId'],
       }),

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scheduledTriggerService } from '@/lib/agents';
+import { waitUntil } from '@vercel/functions';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get('x-cron-secret');
+  // Accept secret from x-cron-secret header OR ?secret= query param
+  // (Vercel crons cannot send custom headers, so the query param fallback is required)
+  const headerSecret = req.headers.get('x-cron-secret');
+  const querySecret = req.nextUrl.searchParams.get('secret');
+  const secret = headerSecret ?? querySecret;
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -19,13 +24,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'type must be "weekly" or "monthly"' }, { status: 400 });
   }
 
-  // Await the call so the trigger service completes before the response is sent.
-  // This is safe on both Vercel (serverless) and Render (persistent) because
-  // the service only publishes events — agents run fire-and-forget internally.
-  const result =
+  const resultPromise =
     type === 'weekly'
-      ? await scheduledTriggerService.runWeekly()
-      : await scheduledTriggerService.runMonthly();
+      ? scheduledTriggerService.runWeekly()
+      : scheduledTriggerService.runMonthly();
+
+  // waitUntil keeps the Vercel function alive until all per-user events are published
+  waitUntil(resultPromise);
+  const result = await resultPromise;
 
   console.log(`[ScheduledTrigger] ${type} trigger completed — ${result.userCount} users at ${new Date().toISOString()}`);
 

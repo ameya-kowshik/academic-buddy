@@ -7,6 +7,7 @@ import { withRateLimit } from '@/middleware/rateLimit';
 import { createFocusSessionSchema } from '@/schemas/focus-session.schema';
 import { eventBus } from '@/lib/agents/index';
 import { AgentEventType } from '@/lib/agents/base/Agent';
+import { waitUntil } from '@vercel/functions';
 
 // GET /api/focus-sessions - Get all focus sessions for the authenticated user
 export const GET = withRateLimit(requireAuth(async (request: NextRequest, context, user: User) => {
@@ -179,12 +180,12 @@ export const POST = withRateLimit(requireAuth(
 
       console.log('Focus session created successfully:', newSession.id);
 
-      void eventBus.publishEvent({
+      waitUntil(eventBus.publishEvent({
         type: AgentEventType.FOCUS_SESSION_COMPLETED,
         userId: user.id,
         timestamp: new Date(),
         payload: { sessionId: newSession.id },
-      });
+      }));
 
       return NextResponse.json(newSession, { status: 201 });
 

@@ -239,6 +239,7 @@ export default function FlashcardsPage() {
               flashcards={flashcards}
               onReview={handleReview}
               onExit={handleExitReview}
+              getToken={() => user?.getIdToken() ?? Promise.resolve(null)}
             />
           ) : (
             <Card className="bg-slate-900/50 border-slate-700/50">

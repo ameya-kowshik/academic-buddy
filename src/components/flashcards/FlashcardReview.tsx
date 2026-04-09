@@ -35,12 +35,14 @@ interface FlashcardReviewProps {
   flashcards: Flashcard[];
   onReview?: (flashcardId: string) => Promise<void>;
   onExit?: () => void;
+  getToken?: () => Promise<string | null>;
 }
 
 export default function FlashcardReview({
   flashcards,
   onReview,
   onExit,
+  getToken,
 }: FlashcardReviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -53,16 +55,22 @@ export default function FlashcardReview({
       const cardCount = flashcards.length;
       if (cardCount > 0) {
         const grouping = flashcards[0]?.grouping ?? null;
-        fetch("/api/flashcard-sessions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            grouping,
-            cardCount,
-            sessionStartedAt: sessionStartedAt.current,
-            sessionCompletedAt: new Date(),
-          }),
-        }).catch((err) => console.error("Failed to record flashcard session:", err));
+        const doPost = async () => {
+          const token = await getToken?.();
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+          fetch('/api/flashcard-sessions', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              grouping,
+              cardCount,
+              sessionStartedAt: sessionStartedAt.current,
+              sessionCompletedAt: new Date(),
+            }),
+          }).catch((err) => console.error('Failed to record flashcard session:', err));
+        };
+        doPost();
       }
     };
   }, []);
