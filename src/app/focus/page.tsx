@@ -23,7 +23,7 @@ import TimerControls from "@/components/focus/TimerControls";
 import SessionCompleteModal from "@/components/focus/SessionCompleteModal";
 import TagSelector from "@/components/focus/TagSelector";
 import TagManager from "@/components/focus/TagManager";
-import FocusCoachNotification from "@/components/agents/FocusCoachNotification";
+import FocusCoachNotification, { CoachSuggestions } from "@/components/agents/FocusCoachNotification";
 
 // Utils
 import { audioManager, notificationManager } from "@/lib/audio";
@@ -64,6 +64,7 @@ function FocusPageContent() {
   const [sessionData, setSessionData] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [coachSuggestions, setCoachSuggestions] = useState<CoachSuggestions | null>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
 
@@ -203,7 +204,7 @@ function FocusPageContent() {
 
     try {
       setActionLoading(true);
-      await createSession({
+      const result = await createSession({
         duration,
         sessionType: sessionData.sessionType,
         focusScore: data.focusScore,
@@ -212,6 +213,9 @@ function FocusPageContent() {
         startedAt: sessionData.startTime,
         completedAt: sessionData.endTime
       });
+      if (result?.coachSuggestions) {
+        setCoachSuggestions(result.coachSuggestions);
+      }
     } finally {
       setActionLoading(false);
     }
@@ -566,7 +570,7 @@ function FocusPageContent() {
         loading={sessionsLoading}
       />
 
-      <FocusCoachNotification />
+      <FocusCoachNotification coachSuggestions={coachSuggestions} />
     </div>
   );
 }

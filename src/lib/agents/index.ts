@@ -13,8 +13,8 @@ const outputStorage = new OutputStorageService();
 const registry = new AgentRegistry();
 export const emailService = new EmailService();
 
-const focusCoachAgent = new FocusCoachAgent(outputStorage);
-registry.registerAgent(focusCoachAgent, [AgentEventType.FOCUS_SESSION_COMPLETED]);
+export const focusCoachAgent = new FocusCoachAgent(outputStorage);
+// Focus Coach is NOT registered with the EventBus — it runs inline in the session save route
 
 const productivityAnalystAgent = new ProductivityAnalystAgent(outputStorage, emailService);
 registry.registerAgent(productivityAnalystAgent, [AgentEventType.WEEKLY_TRIGGER]);

@@ -12,6 +12,7 @@ import {
   Layers,
   Brain,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type Priority = "LOW" | "MEDIUM" | "HIGH";
 type ProgressTrend = "IMPROVING" | "DECLINING" | "STABLE" | "FIRST_ATTEMPT";
@@ -260,13 +261,18 @@ function WeeklyOutputView({ content }: { content: WeeklyContent }) {
 }
 
 export default function StudyCompanionDashboard() {
+  const { user } = useAuth();
   const [outputs, setOutputs] = useState<AgentOutputRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOutputs = async () => {
+      if (!user) return;
       try {
-        const res = await fetch("/api/agents/outputs?agentId=study-companion&limit=10");
+        const token = await user.getIdToken();
+        const res = await fetch("/api/agents/outputs?agentId=study-companion&limit=10", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data.outputs)) setOutputs(data.outputs);
@@ -277,7 +283,7 @@ export default function StudyCompanionDashboard() {
       }
     };
     fetchOutputs();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

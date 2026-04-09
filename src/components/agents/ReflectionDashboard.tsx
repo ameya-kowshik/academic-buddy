@@ -14,6 +14,7 @@ import {
   GitBranch,
   Clock,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type PeriodType = "WEEKLY" | "MONTHLY";
 
@@ -190,14 +191,19 @@ function ReflectionCard({ output }: { output: AgentOutputRecord }) {
 }
 
 export default function ReflectionDashboard() {
+  const { user } = useAuth();
   const [outputs, setOutputs] = useState<AgentOutputRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePeriod, setActivePeriod] = useState<PeriodType>("WEEKLY");
 
   useEffect(() => {
     const fetchOutputs = async () => {
+      if (!user) return;
       try {
-        const res = await fetch("/api/agents/outputs?agentId=reflection&limit=8");
+        const token = await user.getIdToken();
+        const res = await fetch("/api/agents/outputs?agentId=reflection&limit=8", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data.outputs)) setOutputs(data.outputs);
@@ -208,7 +214,7 @@ export default function ReflectionDashboard() {
       }
     };
     fetchOutputs();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

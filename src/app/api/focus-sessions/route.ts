@@ -5,8 +5,9 @@ import { requireAuth } from '@/middleware/auth';
 import { withValidation } from '@/middleware/validation';
 import { withRateLimit } from '@/middleware/rateLimit';
 import { createFocusSessionSchema } from '@/schemas/focus-session.schema';
-import { eventBus } from '@/lib/agents/index';
-import { AgentEventType } from '@/lib/agents/base/Agent';
+import { eventBus, outputStorageService } from '@/lib/agents/index';
+import { AgentEventType, AgentOutputType } from '@/lib/agents/base/Agent';
+import { focusCoachAgent } from '@/lib/agents/index';
 import { waitUntil } from '@vercel/functions';
 
 // GET /api/focus-sessions - Get all focus sessions for the authenticated user
@@ -180,14 +181,40 @@ export const POST = withRateLimit(requireAuth(
 
       console.log('Focus session created successfully:', newSession.id);
 
-      waitUntil(eventBus.publishEvent({
-        type: AgentEventType.FOCUS_SESSION_COMPLETED,
-        userId: user.id,
-        timestamp: new Date(),
-        payload: { sessionId: newSession.id },
-      }));
+      // Run Focus Coach inline — pure math, no LLM, adds ~5ms
+      // Result is returned directly so the UI shows the notification immediately
+      let coachSuggestions: { suggestions: unknown[]; patterns: unknown } | null = null;
+      try {
+        const event = {
+          type: AgentEventType.FOCUS_SESSION_COMPLETED,
+          userId: user.id,
+          timestamp: new Date(),
+          payload: { sessionId: newSession.id },
+        };
+        const input = await focusCoachAgent.prepareInput(event);
+        const output = await focusCoachAgent.execute(input);
+        coachSuggestions = output.content as { suggestions: unknown[]; patterns: unknown };
 
-      return NextResponse.json(newSession, { status: 201 });
+        // Store for history (fire-and-forget — don't block the response)
+        waitUntil(
+          (async () => {
+            const execution = await prisma.agentExecution.create({
+              data: {
+                agentId: focusCoachAgent.id,
+                userId: user.id,
+                eventType: AgentEventType.FOCUS_SESSION_COMPLETED,
+                status: 'COMPLETED',
+                completedAt: new Date(),
+              },
+            });
+            await outputStorageService.storeOutput(output, execution.id);
+          })()
+        );
+      } catch {
+        // Coach failure must never affect the session save response
+      }
+
+      return NextResponse.json({ ...newSession, coachSuggestions }, { status: 201 });
 
     } catch (error) {
       console.error('Error creating focus session:', error);

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type Priority = "LOW" | "MEDIUM" | "HIGH";
 type TrendDirection = "IMPROVING" | "DECLINING" | "STABLE";
@@ -59,26 +60,48 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export default function RecentCoachTips() {
+  const { user } = useAuth();
   const [outputs, setOutputs] = useState<AgentOutputRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchOutputs = async () => {
-      try {
-        const res = await fetch("/api/agents/outputs?agentId=focus-coach&limit=10");
-        if (!res.ok) return;
-        const data = await res.json();
-        const records: AgentOutputRecord[] = data.outputs ?? [];
-        setOutputs(records.filter((r) => !r.dismissed));
-      } catch {
-        // Silently ignore — section is non-critical
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchOutputs = useCallback(async () => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/agents/outputs?agentId=focus-coach&limit=10", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const records: AgentOutputRecord[] = data.outputs ?? [];
+      setOutputs(records.filter((r) => !r.dismissed));
+    } catch {
+      // Silently ignore — section is non-critical
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
+  // Initial fetch
+  useEffect(() => {
     fetchOutputs();
-  }, []);
+  }, [fetchOutputs]);
+
+  // Re-fetch every 30s so new outputs appear without a page reload
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(fetchOutputs, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchOutputs, user]);
+
+  // Re-fetch when the tab becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") fetchOutputs();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [fetchOutputs]);
 
   if (loading) {
     return (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Brain } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type Priority = "LOW" | "MEDIUM" | "HIGH";
 
@@ -14,7 +15,7 @@ interface Suggestion {
   priority: Priority;
 }
 
-interface FocusCoachContent {
+export interface CoachSuggestions {
   suggestions: Suggestion[];
   patterns: {
     trendDirection: string;
@@ -22,64 +23,43 @@ interface FocusCoachContent {
   };
 }
 
-interface AgentOutputRecord {
-  id: string;
-  content: FocusCoachContent;
-  createdAt: string;
-  dismissed: boolean;
-}
-
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
 const priorityBadgeClass: Record<Priority, string> = {
   HIGH: "bg-red-500/20 text-red-400 border-red-500/30",
   MEDIUM: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   LOW: "bg-slate-500/20 text-slate-400 border-slate-500/30",
 };
 
-export default function FocusCoachNotification() {
-  const [output, setOutput] = useState<AgentOutputRecord | null>(null);
+interface Props {
+  /** Pass coachSuggestions from the session save response to show immediately */
+  coachSuggestions?: CoachSuggestions | null;
+}
+
+export default function FocusCoachNotification({ coachSuggestions }: Props) {
+  const { user } = useAuth();
   const [visible, setVisible] = useState(false);
+  const [data, setData] = useState<CoachSuggestions | null>(null);
+  // Track the last suggestions object we showed so we don't re-show on re-renders
+  const shownRef = useRef<CoachSuggestions | null>(null);
 
   useEffect(() => {
-    const fetchOutput = async () => {
-      try {
-        const res = await fetch("/api/agents/outputs?agentId=focus-coach&limit=1");
-        if (!res.ok) return;
-        const data = await res.json();
-        const record: AgentOutputRecord | undefined = data.outputs?.[0];
-        if (!record) return;
-
-        const age = Date.now() - new Date(record.createdAt).getTime();
-        if (!record.dismissed && age <= FIVE_MINUTES_MS) {
-          setOutput(record);
-          setVisible(true);
-        }
-      } catch {
-        // Silently ignore — notification is non-critical
-      }
-    };
-
-    fetchOutput();
-  }, []);
+    if (
+      coachSuggestions &&
+      coachSuggestions !== shownRef.current &&
+      coachSuggestions.suggestions.length > 0
+    ) {
+      shownRef.current = coachSuggestions;
+      setData(coachSuggestions);
+      setVisible(true);
+    }
+  }, [coachSuggestions]);
 
   const handleDismiss = async () => {
-    if (!output) return;
     setVisible(false);
-    try {
-      await fetch(`/api/agents/outputs/${output.id}/interact`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "dismissed" }),
-      });
-    } catch {
-      // Silently ignore
-    }
   };
 
-  if (!visible || !output) return null;
+  if (!visible || !data) return null;
 
-  const { suggestions, patterns } = output.content;
+  const { suggestions, patterns } = data;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-80 animate-in slide-in-from-bottom-4 duration-300">
@@ -132,7 +112,7 @@ export default function FocusCoachNotification() {
               >
                 <Badge
                   variant="outline"
-                  className={`text-[10px] px-1.5 py-0 ${priorityBadgeClass[s.priority]}`}
+                  className={`text-[10px] px-1.5 py-0 ${priorityBadgeClass[s.priority as Priority]}`}
                 >
                   {s.priority}
                 </Badge>

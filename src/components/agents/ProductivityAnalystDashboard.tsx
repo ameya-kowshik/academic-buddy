@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   BarChart3,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 type Trend = "INCREASING" | "DECREASING" | "STABLE";
 type Severity = "INFO" | "WARNING" | "CRITICAL";
@@ -104,14 +105,18 @@ function ChangeCell({ value }: { value: number }) {
 }
 
 export default function ProductivityAnalystDashboard() {
+  const { user } = useAuth();
   const [output, setOutput] = useState<AgentOutputRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOutput = async () => {
+      if (!user) return;
       try {
+        const token = await user.getIdToken();
         const res = await fetch(
-          "/api/agents/outputs?agentId=productivity-analyst&limit=1"
+          "/api/agents/outputs?agentId=productivity-analyst&limit=1",
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) return;
         const data = await res.json();
@@ -124,7 +129,7 @@ export default function ProductivityAnalystDashboard() {
       }
     };
     fetchOutput();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
