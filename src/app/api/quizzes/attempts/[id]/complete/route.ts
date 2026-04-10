@@ -6,10 +6,10 @@ import { quizService } from '@/lib/services/quiz.service';
 
 // POST /api/quizzes/attempts/[id]/complete - Complete a quiz attempt
 export const POST = withRateLimit(
-  requireAuth(async (_request: NextRequest, context, _user: User) => {
+  requireAuth(async (_request: NextRequest, context, user: User) => {
     try {
       const { id: attemptId } = await context.params as unknown as { id: string };
-      const attempt = await quizService.completeAttempt(attemptId);
+      const attempt = await quizService.completeAttempt(user.id, attemptId);
       return NextResponse.json(attempt);
     } catch (error) {
       console.error('Error completing quiz attempt:', error);

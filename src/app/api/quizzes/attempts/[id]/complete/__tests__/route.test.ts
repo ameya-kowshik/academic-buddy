@@ -10,7 +10,7 @@ vi.mock('@/lib/services/quiz.service', () => ({
   },
 }));
 
-// Mock middleware
+// Mock middleware — both wrappers pass the handler through unchanged
 vi.mock('@/middleware/auth', () => ({
   requireAuth: (handler: any) => handler,
 }));
@@ -24,12 +24,21 @@ describe('Complete Attempt API Route', () => {
     id: 'test-user-id',
     email: 'test@example.com',
     firebaseUid: 'firebase-uid',
+    name: null,
+    profilePic: null,
+    emailNotificationsEnabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
   const mockContext = {
-    params: { id: 'attempt-1' },
+    params: Promise.resolve({ id: 'attempt-1' }),
+  };
+
+  const baseAttempt = {
+    weakAreaAnalysis: null,
+    timeSpent: null as number | null,
+    completedAt: null as Date | null,
   };
 
   beforeEach(() => {
@@ -39,6 +48,7 @@ describe('Complete Attempt API Route', () => {
   describe('POST /api/quizzes/attempts/[id]/complete', () => {
     it('should complete a quiz attempt successfully', async () => {
       const mockCompletedAttempt = {
+        ...baseAttempt,
         id: 'attempt-1',
         quizId: 'quiz-1',
         score: 80,
@@ -55,7 +65,7 @@ describe('Complete Attempt API Route', () => {
         method: 'POST',
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -64,11 +74,12 @@ describe('Complete Attempt API Route', () => {
       expect(data.correctAnswers).toBe(4);
       expect(data.timeSpent).toBe(300);
       expect(data.completedAt).toBeTruthy();
-      expect(quizService.completeAttempt).toHaveBeenCalledWith('attempt-1');
+      expect(quizService.completeAttempt).toHaveBeenCalledWith('test-user-id', 'attempt-1');
     });
 
     it('should handle perfect score', async () => {
       const mockCompletedAttempt = {
+        ...baseAttempt,
         id: 'attempt-2',
         quizId: 'quiz-1',
         score: 100,
@@ -85,7 +96,7 @@ describe('Complete Attempt API Route', () => {
         method: 'POST',
       });
 
-      const response = await POST(request, { params: { id: 'attempt-2' } }, mockUser);
+      const response = await (POST as any)(request, { params: Promise.resolve({ id: 'attempt-2' }) }, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -95,6 +106,7 @@ describe('Complete Attempt API Route', () => {
 
     it('should handle zero score', async () => {
       const mockCompletedAttempt = {
+        ...baseAttempt,
         id: 'attempt-3',
         quizId: 'quiz-1',
         score: 0,
@@ -111,7 +123,7 @@ describe('Complete Attempt API Route', () => {
         method: 'POST',
       });
 
-      const response = await POST(request, { params: { id: 'attempt-3' } }, mockUser);
+      const response = await (POST as any)(request, { params: Promise.resolve({ id: 'attempt-3' }) }, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -128,7 +140,7 @@ describe('Complete Attempt API Route', () => {
         method: 'POST',
       });
 
-      const response = await POST(request, { params: { id: 'nonexistent' } }, mockUser);
+      const response = await (POST as any)(request, { params: Promise.resolve({ id: 'nonexistent' }) }, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -144,7 +156,7 @@ describe('Complete Attempt API Route', () => {
         method: 'POST',
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(500);

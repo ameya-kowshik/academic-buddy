@@ -80,6 +80,8 @@ export class FocusCoachAgent extends Agent {
     const limitedData = sessions.length < 3;
 
     // --- Pattern 1: Declining scores (HIGH priority) ---
+    // Sessions are ordered desc (newest first): a=newest, b=middle, c=oldest.
+    // a < b < c means newest score is lowest → scores declining over time. Correct.
     const last3 = sessions.slice(0, 3);
     const last3WithScores = last3.filter((s) => s.focusScore !== null);
     if (last3WithScores.length === 3) {
@@ -124,20 +126,28 @@ export class FocusCoachAgent extends Agent {
       }
     }
 
-    // --- Pattern 3: Break frequency (MEDIUM priority) ---
-    const breakCount = sessions.filter((s) => s.sessionType !== 'POMODORO').length;
-    const breakRatio = sessions.length > 0 ? breakCount / sessions.length : 0;
-    if (breakRatio < 0.5) {
-      detectedPatterns.push(
-        `Low break frequency: ${breakCount} breaks in last ${sessions.length} sessions`
-      );
-      if (suggestions.length < 3) {
-        suggestions.push({
-          type: 'BREAK_TIMING',
-          message:
-            'You are not taking enough breaks. Aim for at least one break for every two focus sessions to avoid burnout.',
-          priority: 'MEDIUM',
-        });
+    // --- Pattern 3: High session count without rest (MEDIUM priority) ---
+    // Since sessionType is either POMODORO or STOPWATCH (both work sessions, no break type),
+    // we use session count as a proxy: many sessions in a short window suggests no rest days.
+    if (sessions.length >= 6) {
+      const oldestSession = sessions[sessions.length - 1];
+      const newestSession = sessions[0];
+      const spanDays =
+        (newestSession.startedAt.getTime() - oldestSession.startedAt.getTime()) /
+        (1000 * 60 * 60 * 24);
+      // 6+ sessions within 2 days = very high intensity, suggest pacing
+      if (spanDays <= 2) {
+        detectedPatterns.push(
+          `High session intensity: ${sessions.length} sessions in ${spanDays.toFixed(1)} days`
+        );
+        if (suggestions.length < 3) {
+          suggestions.push({
+            type: 'BREAK_TIMING',
+            message:
+              'You have been studying very intensively. Make sure to schedule rest time to avoid burnout.',
+            priority: 'MEDIUM',
+          });
+        }
       }
     }
 

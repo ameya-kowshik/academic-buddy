@@ -23,6 +23,7 @@ interface StudyMetrics {
   quizzesCompleted: number;
   avgQuizScore: number;
   flashcardSessions: number;
+  totalFlashcardMinutes: number;
   dailyQuizScores: Record<string, number[]>; // ISO date string → scores
 }
 
@@ -108,7 +109,7 @@ function computeFocusMetrics(
 
 function computeStudyMetrics(
   quizAttempts: Array<{ id: string; score: number; completedAt: Date | null }>,
-  flashcardSessions: Array<{ id: string; sessionStartedAt: Date }>
+  flashcardSessions: Array<{ id: string; sessionStartedAt: Date; durationSeconds: number | null }>
 ): StudyMetrics {
   const dailyQuizScores: Record<string, number[]> = {};
 
@@ -123,10 +124,17 @@ function computeStudyMetrics(
       ? quizAttempts.reduce((s, a) => s + a.score, 0) / quizAttempts.length
       : 0;
 
+  // Sum actual recorded durations; fall back to 15-min estimate only for sessions with no duration
+  const totalFlashcardSeconds = flashcardSessions.reduce(
+    (sum, s) => sum + (s.durationSeconds ?? 15 * 60),
+    0
+  );
+
   return {
     quizzesCompleted: quizAttempts.length,
     avgQuizScore,
     flashcardSessions: flashcardSessions.length,
+    totalFlashcardMinutes: Math.round(totalFlashcardSeconds / 60),
     dailyQuizScores,
   };
 }
@@ -224,11 +232,11 @@ export class ReflectionAgent extends Agent {
       }),
       prisma.flashcardSession.findMany({
         where: { userId, sessionStartedAt: { gte: periodStart, lt: periodEnd } },
-        select: { id: true, sessionStartedAt: true },
+        select: { id: true, sessionStartedAt: true, durationSeconds: true },
       }),
       prisma.flashcardSession.findMany({
         where: { userId, sessionStartedAt: { gte: prevStart, lt: prevEnd } },
-        select: { id: true, sessionStartedAt: true },
+        select: { id: true, sessionStartedAt: true, durationSeconds: true },
       }),
       prisma.agentOutput.findMany({
         where: {
@@ -446,7 +454,7 @@ export class ReflectionAgent extends Agent {
       summary: { highlights, challenges, patterns, recommendations },
       metrics: {
         totalFocusHours: Math.round(currentFocus.totalFocusHours * 10) / 10,
-        totalStudyTimeMinutes: currentStudy.flashcardSessions * 15, // rough estimate
+        totalStudyTimeMinutes: currentStudy.totalFlashcardMinutes,
         quizzesCompleted: currentStudy.quizzesCompleted,
         avgQuizScore: Math.round(currentStudy.avgQuizScore * 10) / 10,
         flashcardSessions: currentStudy.flashcardSessions,

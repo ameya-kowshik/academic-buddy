@@ -13,7 +13,7 @@ const submitAnswerSchema = z.object({
 
 // POST /api/quizzes/attempts/[id]/answers - Submit an answer for a quiz question
 export const POST = withRateLimit(
-  requireAuth(async (request: NextRequest, context, _user: User) => {
+  requireAuth(async (request: NextRequest, context, user: User) => {
     try {
       const { id: attemptId } = await context.params;
       console.log('POST /api/quizzes/attempts/[id]/answers called for attempt:', attemptId);
@@ -25,6 +25,7 @@ export const POST = withRateLimit(
 
       // Submit answer
       const questionAttempt = await quizService.submitAnswer(
+        user.id,
         attemptId,
         validatedData.questionId,
         validatedData.answer

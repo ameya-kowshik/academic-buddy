@@ -10,7 +10,7 @@ vi.mock('@/lib/services/quiz.service', () => ({
   },
 }));
 
-// Mock middleware
+// Mock middleware — both wrappers pass the handler through unchanged
 vi.mock('@/middleware/auth', () => ({
   requireAuth: (handler: any) => handler,
 }));
@@ -24,12 +24,15 @@ describe('Submit Answer API Route', () => {
     id: 'test-user-id',
     email: 'test@example.com',
     firebaseUid: 'firebase-uid',
+    name: null,
+    profilePic: null,
+    emailNotificationsEnabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
   const mockContext = {
-    params: { id: 'attempt-1' },
+    params: Promise.resolve({ id: 'attempt-1' }),
   };
 
   beforeEach(() => {
@@ -60,14 +63,14 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(201);
       expect(data.id).toBe('qa-1');
       expect(data.selectedAnswer).toBe('4');
       expect(data.isCorrect).toBe(true);
-      expect(quizService.submitAnswer).toHaveBeenCalledWith('attempt-1', 'question-1', '4');
+      expect(quizService.submitAnswer).toHaveBeenCalledWith('test-user-id', 'attempt-1', 'question-1', '4');
     });
 
     it('should handle incorrect answers', async () => {
@@ -93,7 +96,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(201);
@@ -110,7 +113,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -128,7 +131,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -151,7 +154,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, { params: { id: 'nonexistent' } }, mockUser);
+      const response = await (POST as any)(request, { params: Promise.resolve({ id: 'nonexistent' }) }, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -173,7 +176,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -195,7 +198,7 @@ describe('Submit Answer API Route', () => {
         body: JSON.stringify(requestBody),
       });
 
-      const response = await POST(request, mockContext, mockUser);
+      const response = await (POST as any)(request, mockContext, mockUser);
       const data = await response.json();
 
       expect(response.status).toBe(500);

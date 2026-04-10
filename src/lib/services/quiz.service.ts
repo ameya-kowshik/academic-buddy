@@ -384,6 +384,19 @@ export class QuizService {
       throw new Error('Quiz not found');
     }
 
+    // Guard against duplicate in-progress attempts (e.g. double-click)
+    const existingInProgress = await prisma.quizAttempt.findFirst({
+      where: {
+        quizId,
+        completedAt: null,
+      },
+      orderBy: { startedAt: 'desc' },
+    });
+
+    if (existingInProgress) {
+      return existingInProgress;
+    }
+
     // Create quiz attempt record
     const attempt = await prisma.quizAttempt.create({
       data: {
@@ -400,21 +413,24 @@ export class QuizService {
 
   /**
    * Submit an answer for a quiz question
+   * @param userId - User ID submitting the answer (for ownership validation)
    * @param attemptId - Quiz attempt ID
    * @param questionId - Question ID being answered
    * @param answer - Selected answer
    * @returns Created QuizQuestionAttempt record with correctness
-   * @throws Error if attempt or question not found
+   * @throws Error if attempt or question not found, or user doesn't own the attempt
    */
   async submitAnswer(
+    userId: string,
     attemptId: string,
     questionId: string,
     answer: string
   ): Promise<QuizQuestionAttempt> {
-    // Verify attempt exists
-    const attempt = await prisma.quizAttempt.findUnique({
+    // Verify attempt exists and belongs to this user (via quiz ownership)
+    const attempt = await prisma.quizAttempt.findFirst({
       where: {
         id: attemptId,
+        quiz: { userId },
       },
     });
 
@@ -452,15 +468,17 @@ export class QuizService {
 
   /**
    * Complete a quiz attempt and calculate final score
+   * @param userId - User ID completing the attempt (for ownership validation)
    * @param attemptId - Quiz attempt ID to complete
    * @returns Updated QuizAttempt record with score
-   * @throws Error if attempt not found
+   * @throws Error if attempt not found or user doesn't own it
    */
-  async completeAttempt(attemptId: string): Promise<QuizAttempt> {
-    // Get attempt with all question attempts
-    const attempt = await prisma.quizAttempt.findUnique({
+  async completeAttempt(userId: string, attemptId: string): Promise<QuizAttempt> {
+    // Get attempt with all question attempts, validating ownership via quiz relation
+    const attempt = await prisma.quizAttempt.findFirst({
       where: {
         id: attemptId,
+        quiz: { userId },
       },
       include: {
         questionAttempts: true,
@@ -479,15 +497,14 @@ export class QuizService {
     // Calculate correct answers
     const correctAnswers = attempt.questionAttempts.filter((qa) => qa.isCorrect).length;
 
-    // Calculate score as percentage
-    const score = attempt.totalQuestions > 0 
-      ? (correctAnswers / attempt.totalQuestions) * 100 
-      : 0;
+    // Use actual answered question count as denominator to avoid division by stale totalQuestions
+    const answeredCount = attempt.questionAttempts.length;
+    const denominator = answeredCount > 0 ? answeredCount : attempt.totalQuestions;
+    const score = denominator > 0 ? (correctAnswers / denominator) * 100 : 0;
 
     // Calculate time spent in seconds
     const completedAt = new Date();
-    const timeSpentSeconds = Math.floor((completedAt.getTime() - attempt.startedAt.getTime()) / 1000);
-    const timeSpent = timeSpentSeconds;
+    const timeSpent = Math.floor((completedAt.getTime() - attempt.startedAt.getTime()) / 1000);
 
     // Update attempt with final score and completion time
     const updatedAttempt = await prisma.quizAttempt.update({

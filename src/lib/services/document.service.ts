@@ -197,6 +197,16 @@ export class DocumentService {
         },
       });
 
+      // Clean up temp file for remote documents
+      if (!document.fileUrl.startsWith('/uploads/')) {
+        try {
+          const { unlink } = await import('fs/promises');
+          await unlink(filePath);
+        } catch {
+          // Non-fatal: temp file cleanup failure should not affect the result
+        }
+      }
+
       console.log('[Text Extraction] Database updated successfully');
       return extractedText;
       

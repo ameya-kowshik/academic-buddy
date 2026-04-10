@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
-import { PrismaClient, User } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { User } from '@prisma/client';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: User;
