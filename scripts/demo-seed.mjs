@@ -4,7 +4,8 @@
  *
  * Usage:
  *   node scripts/demo-seed.mjs <your@email.com>
- *   node scripts/demo-seed.mjs <your@email.com> --reset
+ *   node scripts/demo-seed.mjs <your@email.com> --reset   ← wipe demo-tagged data, re-seed
+ *   node scripts/demo-seed.mjs <your@email.com> --nuke    ← wipe ALL user data, re-seed fresh
  *
  * Run from the academic-buddy directory.
  */
@@ -36,12 +37,13 @@ try {
 const prisma = new PrismaClient();
 
 const EMAIL = process.argv[2];
-const RESET = process.argv.includes('--reset');
+const RESET = process.argv.includes('--reset') || process.argv.includes('--nuke');
+const NUKE  = process.argv.includes('--nuke');
 const DEMO_TAG = '[DEMO]';
 const DEMO_QUIZ_TITLE = `Neural Networks — Fundamentals ${DEMO_TAG}`;
 
 if (!EMAIL || !EMAIL.includes('@')) {
-  console.error('Usage: node scripts/demo-seed.mjs <your@email.com> [--reset]');
+  console.error('Usage: node scripts/demo-seed.mjs <your@email.com> [--reset|--nuke]');
   process.exit(1);
 }
 
@@ -71,7 +73,26 @@ async function resetDemoData(userId) {
   await prisma.analytics.deleteMany({
     where: { userId, date: { gte: fourteenDaysAgo } },
   });
+  await prisma.tag.deleteMany({
+    where: { userId, name: { in: ['Neural Networks', 'Deep Learning', 'Network Security'] } },
+  });
   console.log('  ✅ Demo data cleared');
+}
+
+async function nukeAllData(userId) {
+  console.log('  Nuking ALL data for this account...');
+  // Delete in dependency order (children before parents)
+  await prisma.agentOutput.deleteMany({ where: { userId } });
+  await prisma.agentExecution.deleteMany({ where: { userId } });
+  await prisma.flashcardSession.deleteMany({ where: { userId } });
+  await prisma.flashcard.deleteMany({ where: { userId } });
+  await prisma.analytics.deleteMany({ where: { userId } });
+  await prisma.pomodoroLog.deleteMany({ where: { userId } });
+  await prisma.tag.deleteMany({ where: { userId } });
+  // Quiz cascade: attempts + question attempts are deleted via onDelete: Cascade on quiz
+  await prisma.quiz.deleteMany({ where: { userId } });
+  await prisma.sourceMaterial.deleteMany({ where: { userId } });
+  console.log('  ✅ All user data wiped — account is clean');
 }
 
 // ---------------------------------------------------------------------------
@@ -335,10 +356,11 @@ async function main() {
   console.log(`✅ Found user: ${user.name ?? EMAIL} (${userId})`);
 
   if (RESET) await resetDemoData(userId);
+  if (NUKE)  await nukeAllData(userId);
 
   const existing = await prisma.quiz.findFirst({ where: { userId, title: DEMO_QUIZ_TITLE } });
   if (existing) {
-    console.log('\n⚠️  Demo data already exists. Run with --reset to re-seed.\n');
+    console.log('\n⚠️  Demo data already exists. Run with --reset or --nuke to re-seed.\n');
     process.exit(0);
   }
 
@@ -349,9 +371,29 @@ async function main() {
   });
   console.log('✅ Email notifications enabled');
 
-  // --- Focus sessions ---
-  for (const s of FOCUS_SESSIONS) {
+  // --- Demo tags ---
+  const TAG_DEFS = [
+    { name: 'Neural Networks', color: '#06b6d4' },
+    { name: 'Deep Learning',   color: '#8b5cf6' },
+    { name: 'Network Security', color: '#10b981' },
+  ];
+  const createdTags = [];
+  for (const t of TAG_DEFS) {
+    const tag = await prisma.tag.upsert({
+      where: { userId_name: { userId, name: t.name } },
+      update: { color: t.color },
+      create: { userId, name: t.name, color: t.color },
+    });
+    createdTags.push(tag);
+  }
+  console.log(`✅ Seeded ${createdTags.length} demo tags`);
+
+  // --- Focus sessions (with rotating tag assignments for pie chart) ---
+  for (let i = 0; i < FOCUS_SESSIONS.length; i++) {
+    const s = FOCUS_SESSIONS[i];
     const startedAt = daysAgo(s.daysBack, s.hour);
+    // Rotate tags across sessions so all 3 appear in the pie chart
+    const tag = createdTags[i % createdTags.length];
     await prisma.pomodoroLog.create({
       data: {
         userId,
@@ -361,40 +403,69 @@ async function main() {
         startedAt,
         completedAt: addMinutes(startedAt, s.duration),
         notes: DEMO_TAG,
+        tagId: tag.id,
       },
     });
   }
   console.log(`✅ Seeded ${FOCUS_SESSIONS.length} focus sessions`);
 
   // --- Analytics rollup (daily) ---
-  // Group focus sessions by day and upsert Analytics records
+  // Group focus sessions by day
   const dailyMap = new Map();
   for (const s of FOCUS_SESSIONS) {
     const d = new Date();
     d.setDate(d.getDate() - s.daysBack);
     d.setHours(0, 0, 0, 0);
     const key = d.toISOString().split('T')[0];
-    if (!dailyMap.has(key)) dailyMap.set(key, { date: d, sessions: 0, minutes: 0 });
+    if (!dailyMap.has(key)) dailyMap.set(key, { date: d, sessions: 0, minutes: 0, flashcards: 0, quizzes: 0 });
     const entry = dailyMap.get(key);
     entry.sessions += 1;
     entry.minutes += s.duration;
   }
+
+  // Add flashcard session counts per day
+  for (const s of FLASHCARD_SESSIONS) {
+    const d = new Date();
+    d.setDate(d.getDate() - s.daysBack);
+    d.setHours(0, 0, 0, 0);
+    const key = d.toISOString().split('T')[0];
+    if (!dailyMap.has(key)) dailyMap.set(key, { date: d, sessions: 0, minutes: 0, flashcards: 0, quizzes: 0 });
+    dailyMap.get(key).flashcards += s.cardCount;
+  }
+
+  // Add quiz attempt counts per day (will be filled after quizzes are seeded)
+  // We track this via QUIZ_DEFS attempts daysBack
+  for (const def of QUIZ_DEFS) {
+    for (const attempt of def.attempts) {
+      const d = new Date();
+      d.setDate(d.getDate() - attempt.daysBack);
+      d.setHours(0, 0, 0, 0);
+      const key = d.toISOString().split('T')[0];
+      if (!dailyMap.has(key)) dailyMap.set(key, { date: d, sessions: 0, minutes: 0, flashcards: 0, quizzes: 0 });
+      dailyMap.get(key).quizzes += 1;
+    }
+  }
+
   for (const [, entry] of dailyMap) {
     await prisma.analytics.upsert({
       where: { userId_date: { userId, date: entry.date } },
       update: {
         pomodoroSessions: entry.sessions,
         focusHours: Math.round((entry.minutes / 60) * 10) / 10,
+        flashcardsReviewed: entry.flashcards,
+        quizzesCompleted: entry.quizzes,
       },
       create: {
         userId,
         date: entry.date,
         pomodoroSessions: entry.sessions,
         focusHours: Math.round((entry.minutes / 60) * 10) / 10,
+        flashcardsReviewed: entry.flashcards,
+        quizzesCompleted: entry.quizzes,
       },
     });
   }
-  console.log(`✅ Seeded ${dailyMap.size} daily analytics records`);
+  console.log(`✅ Seeded ${dailyMap.size} daily analytics records (with flashcards + quizzes)`);
 
   // --- Quizzes, questions, attempts ---
   let totalAttempts = 0;

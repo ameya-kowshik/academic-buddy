@@ -190,20 +190,34 @@ export class EmailService {
   <h1 style="color:#818cf8;margin-bottom:4px;">Weekly Study Report</h1>
   <p style="color:#64748b;margin-top:0;">Hi ${prefs.name}, here's your study activity this week.</p>
 
-  <div style="display:flex;gap:12px;margin:24px 0;">
-    <div style="flex:1;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Quizzes</p>
-      <p style="font-size:28px;font-weight:bold;color:#818cf8;margin:0;">${data.weekSummary.totalQuizAttempts}</p>
-    </div>
-    <div style="flex:1;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Avg Score</p>
-      <p style="font-size:28px;font-weight:bold;color:#10b981;margin:0;">${data.weekSummary.avgQuizScore.toFixed(0)}%</p>
-    </div>
-    <div style="flex:1;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Flashcard Min</p>
-      <p style="font-size:28px;font-weight:bold;color:#38bdf8;margin:0;">${data.weekSummary.totalFlashcardMinutes}</p>
-    </div>
-  </div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <tr>
+      <td width="33%" style="padding-right:6px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Quizzes</p>
+            <p style="font-size:28px;font-weight:bold;color:#818cf8;margin:0;">${data.weekSummary.totalQuizAttempts}</p>
+          </td></tr>
+        </table>
+      </td>
+      <td width="33%" style="padding:0 3px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Avg Score</p>
+            <p style="font-size:28px;font-weight:bold;color:#10b981;margin:0;">${data.weekSummary.avgQuizScore.toFixed(0)}%</p>
+          </td></tr>
+        </table>
+      </td>
+      <td width="33%" style="padding-left:6px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Flashcard Min</p>
+            <p style="font-size:28px;font-weight:bold;color:#38bdf8;margin:0;">${data.weekSummary.totalFlashcardMinutes}</p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
   ${materialsHtml ? `
   <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;">
@@ -253,20 +267,34 @@ export class EmailService {
   <h1 style="color:#a78bfa;margin-bottom:4px;">${periodLabel} Reflection</h1>
   <p style="color:#64748b;margin-top:0;">Hi ${prefs.name} — ${startDate} to ${endDate}</p>
 
-  <div style="display:flex;gap:12px;margin:24px 0;flex-wrap:wrap;">
-    <div style="flex:1;min-width:100px;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Focus Hours</p>
-      <p style="font-size:24px;font-weight:bold;color:#38bdf8;margin:0;">${data.metrics.totalFocusHours.toFixed(1)}</p>
-    </div>
-    <div style="flex:1;min-width:100px;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Quizzes</p>
-      <p style="font-size:24px;font-weight:bold;color:#818cf8;margin:0;">${data.metrics.quizzesCompleted}</p>
-    </div>
-    <div style="flex:1;min-width:100px;background:#1e293b;border-radius:12px;padding:16px;text-align:center;">
-      <p style="color:#94a3b8;margin:0 0 4px;font-size:12px;">Avg Quiz Score</p>
-      <p style="font-size:24px;font-weight:bold;color:#10b981;margin:0;">${data.metrics.avgQuizScore.toFixed(0)}%</p>
-    </div>
-  </div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <tr>
+      <td width="33%" style="padding-right:6px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Focus Hours</p>
+            <p style="font-size:24px;font-weight:bold;color:#38bdf8;margin:0;">${data.metrics.totalFocusHours.toFixed(1)}</p>
+          </td></tr>
+        </table>
+      </td>
+      <td width="33%" style="padding:0 3px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Quizzes</p>
+            <p style="font-size:24px;font-weight:bold;color:#818cf8;margin:0;">${data.metrics.quizzesCompleted}</p>
+          </td></tr>
+        </table>
+      </td>
+      <td width="33%" style="padding-left:6px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:16px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Avg Quiz Score</p>
+            <p style="font-size:24px;font-weight:bold;color:#10b981;margin:0;">${data.metrics.avgQuizScore.toFixed(0)}%</p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
   <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;">
     <h3 style="color:#10b981;margin-top:0;">✨ Highlights</h3>

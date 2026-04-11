@@ -25,9 +25,9 @@ import {
   Coffee,
   BarChart3,
   Sparkles,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
+
+type ProfileTab = "overview" | "reflections";
 import ReflectionDashboard from "@/components/agents/ReflectionDashboard";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,8 +47,8 @@ interface AnalyticsData {
 function ProfilePageContent() {
   const { user, loading: authLoading } = useAuth();
   
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [insightsOpen, setInsightsOpen] = useState(false);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.displayName || "",
@@ -187,9 +187,9 @@ function ProfilePageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
+      {/* Header + Tab Navbar */}
       <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-6 pt-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
               <User className="h-5 w-5 text-white" />
@@ -199,6 +199,31 @@ function ProfilePageContent() {
               <p className="text-sm text-slate-400">Manage your account settings</p>
             </div>
           </div>
+        </div>
+        {/* Tab bar */}
+        <div className="container mx-auto px-6 flex gap-1 mt-3">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "overview"
+                ? "border-purple-400 text-purple-300"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("reflections")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "reflections"
+                ? "border-violet-400 text-violet-300"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            Reflections
+          </button>
         </div>
       </header>
 
@@ -248,6 +273,9 @@ function ProfilePageContent() {
           </Card>
         )}
 
+        {activeTab === "reflections" ? (
+          <ReflectionDashboard />
+        ) : (
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Profile Card */}
           <div className="lg:col-span-1">
@@ -604,33 +632,9 @@ function ProfilePageContent() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Insights — My Reflections */}
-            <Card className="bg-slate-900/50 border-slate-700/50">
-              <CardHeader>
-                <button
-                  onClick={() => setInsightsOpen((prev) => !prev)}
-                  className="w-full flex items-center justify-between text-left"
-                >
-                  <CardTitle className="text-lg flex items-center">
-                    <Sparkles className="w-5 h-5 mr-2 text-violet-400" />
-                    My Reflections
-                  </CardTitle>
-                  {insightsOpen ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  )}
-                </button>
-              </CardHeader>
-              {insightsOpen && (
-                <CardContent className="pt-0">
-                  <ReflectionDashboard />
-                </CardContent>
-              )}
-            </Card>
           </div>
         </div>
+        )}
       </main>
     </div>
   );
