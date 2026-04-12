@@ -49,7 +49,18 @@ export interface StudyReportData {
     attemptCount: number;
     trend: string;
   }>;
-  topicsNeedingAttention: string[];
+  topicsNeedingAttention: Array<{
+    topic: string;
+    incorrectCount: number;
+    totalAppearances: number;
+    errorRate: number;
+    quizTitles: string[];
+    sourceMaterial?: {
+      id: string;
+      fileName: string;
+    };
+    recommendation: string;
+  }>;
 }
 
 export interface ReflectionData {
@@ -62,9 +73,15 @@ export interface ReflectionData {
   };
   metrics: {
     totalFocusHours: number;
+    totalStudyTimeMinutes?: number;
     quizzesCompleted: number;
     avgQuizScore: number;
     flashcardSessions: number;
+  };
+  comparison?: {
+    improvements: string[];
+    regressions: string[];
+    percentageChanges: Record<string, number>;
   };
 }
 
@@ -169,8 +186,17 @@ export class EmailService {
     if (!prefs || !prefs.notificationsEnabled) return;
 
     const topicsHtml = data.topicsNeedingAttention.length > 0
-      ? data.topicsNeedingAttention.map((t) => `<li style="color:#fbbf24;">${t}</li>`).join('')
-      : '<li style="color:#94a3b8;">No weak areas detected — great work!</li>';
+      ? data.topicsNeedingAttention.map((t) => `
+        <div style="margin-bottom:12px;padding:12px;background:#7f1d1d;border-radius:8px;">
+          <p style="color:#fca5a5;font-weight:bold;margin:0 0 4px;text-transform:capitalize;">${t.topic}</p>
+          <p style="color:#fca5a5;font-size:12px;margin:0 0 8px;">
+            ${t.incorrectCount} incorrect attempt${t.incorrectCount !== 1 ? 's' : ''} • ${(t.errorRate * 100).toFixed(0)}% error rate
+          </p>
+          <p style="color:#fca5a5;font-size:14px;margin:0;">
+            💡 ${t.recommendation}
+          </p>
+        </div>`).join('')
+      : '<p style="color:#94a3b8;margin:0;">No weak areas detected — great work! Keep up the excellent performance.</p>';
 
     const materialsHtml = data.materialPerformance
       .slice(0, 5)
@@ -227,7 +253,7 @@ export class EmailService {
 
   <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:24px;">
     <h3 style="color:#e2e8f0;margin-top:0;">Topics Needing Attention</h3>
-    <ul style="padding-left:20px;margin:0;">${topicsHtml}</ul>
+    ${topicsHtml}
   </div>
 
   <a href="${APP_URL}/study/analytics" style="display:inline-block;background:#818cf8;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">View Study Analytics →</a>
@@ -259,6 +285,19 @@ export class EmailService {
     const listHtml = (items: string[], color: string) =>
       items.map((i) => `<li style="margin-bottom:6px;color:${color};">${i}</li>`).join('');
 
+    // Comparison section (improvements / regressions)
+    const comparisonHtml = data.comparison && (data.comparison.improvements.length > 0 || data.comparison.regressions.length > 0)
+      ? `
+  <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;">
+    <h3 style="color:#e2e8f0;margin-top:0;">📊 vs Previous ${periodLabel === 'Monthly' ? 'Month' : 'Week'}</h3>
+    ${data.comparison.improvements.length > 0 ? `
+    <p style="color:#10b981;font-size:12px;font-weight:bold;margin:0 0 4px;">Improvements</p>
+    <ul style="padding-left:20px;margin:0 0 12px;">${listHtml(data.comparison.improvements, '#10b981')}</ul>` : ''}
+    ${data.comparison.regressions.length > 0 ? `
+    <p style="color:#ef4444;font-size:12px;font-weight:bold;margin:0 0 4px;">Regressions</p>
+    <ul style="padding-left:20px;margin:0;">${listHtml(data.comparison.regressions, '#ef4444')}</ul>` : ''}
+  </div>` : '';
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -269,27 +308,35 @@ export class EmailService {
 
   <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
     <tr>
-      <td width="33%" style="padding-right:6px;">
+      <td width="25%" style="padding-right:4px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
-          <tr><td style="padding:16px;text-align:center;">
-            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Focus Hours</p>
-            <p style="font-size:24px;font-weight:bold;color:#38bdf8;margin:0;">${data.metrics.totalFocusHours.toFixed(1)}</p>
+          <tr><td style="padding:14px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 4px;font-size:11px;">Focus Hours</p>
+            <p style="font-size:22px;font-weight:bold;color:#38bdf8;margin:0;">${data.metrics.totalFocusHours.toFixed(1)}</p>
           </td></tr>
         </table>
       </td>
-      <td width="33%" style="padding:0 3px;">
+      <td width="25%" style="padding:0 2px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
-          <tr><td style="padding:16px;text-align:center;">
-            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Quizzes</p>
-            <p style="font-size:24px;font-weight:bold;color:#818cf8;margin:0;">${data.metrics.quizzesCompleted}</p>
+          <tr><td style="padding:14px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 4px;font-size:11px;">Quizzes</p>
+            <p style="font-size:22px;font-weight:bold;color:#818cf8;margin:0;">${data.metrics.quizzesCompleted}</p>
           </td></tr>
         </table>
       </td>
-      <td width="33%" style="padding-left:6px;">
+      <td width="25%" style="padding:0 2px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
-          <tr><td style="padding:16px;text-align:center;">
-            <p style="color:#94a3b8;margin:0 0 6px;font-size:12px;">Avg Quiz Score</p>
-            <p style="font-size:24px;font-weight:bold;color:#10b981;margin:0;">${data.metrics.avgQuizScore.toFixed(0)}%</p>
+          <tr><td style="padding:14px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 4px;font-size:11px;">Avg Score</p>
+            <p style="font-size:22px;font-weight:bold;color:#10b981;margin:0;">${data.metrics.avgQuizScore.toFixed(0)}%</p>
+          </td></tr>
+        </table>
+      </td>
+      <td width="25%" style="padding-left:4px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:12px;">
+          <tr><td style="padding:14px;text-align:center;">
+            <p style="color:#94a3b8;margin:0 0 4px;font-size:11px;">Flashcard Sessions</p>
+            <p style="font-size:22px;font-weight:bold;color:#f59e0b;margin:0;">${data.metrics.flashcardSessions}</p>
           </td></tr>
         </table>
       </td>
@@ -311,12 +358,15 @@ export class EmailService {
     <ul style="padding-left:20px;margin:0;">${listHtml(data.summary.patterns, '#94a3b8')}</ul>
   </div>
 
-  <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:24px;">
+  <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;">
     <h3 style="color:#a78bfa;margin-top:0;">💡 Recommendations</h3>
     <ul style="padding-left:20px;margin:0;">${listHtml(data.summary.recommendations, '#94a3b8')}</ul>
   </div>
 
-  <a href="${APP_URL}/profile" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">View Full Reflection →</a>
+  ${comparisonHtml}
+
+  <a href="${APP_URL}/study/analytics" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin-right:8px;">Study Analytics →</a>
+  <a href="${APP_URL}/focus/analytics" style="display:inline-block;background:#0ea5e9;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">Focus Analytics →</a>
 
   <p style="color:#334155;font-size:12px;margin-top:32px;">You're receiving this because email notifications are enabled. <a href="${APP_URL}/profile" style="color:#475569;">Manage preferences</a></p>
 </body>

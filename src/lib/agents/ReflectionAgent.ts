@@ -345,11 +345,20 @@ export class ReflectionAgent extends Agent {
         }
       }
       if (output.agentId === 'study-companion') {
-        const c = output.content as { topicsNeedingAttention?: string[] };
+        // topicsNeedingAttention is an array of objects with a `topic` string field
+        const c = output.content as {
+          topicsNeedingAttention?: Array<{ topic: string; errorRate?: number } | string>;
+          weekSummary?: { avgQuizScore?: number };
+        };
         if (c.topicsNeedingAttention && c.topicsNeedingAttention.length > 0) {
-          challenges.push(
-            `Topics needing attention: ${c.topicsNeedingAttention.slice(0, 3).join(', ')}.`
+          const topicNames = c.topicsNeedingAttention.slice(0, 3).map((t) =>
+            typeof t === 'string' ? t : t.topic
           );
+          challenges.push(`Topics needing attention: ${topicNames.join(', ')}.`);
+        }
+        // Also flag low average quiz score from study companion weekly summary
+        if (c.weekSummary?.avgQuizScore !== undefined && c.weekSummary.avgQuizScore > 0 && c.weekSummary.avgQuizScore < 60) {
+          challenges.push(`Average quiz score this week is ${c.weekSummary.avgQuizScore.toFixed(0)}% — below the 60% threshold.`);
         }
       }
     }

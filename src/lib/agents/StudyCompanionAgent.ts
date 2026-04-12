@@ -23,6 +23,19 @@ interface Recommendation {
   priority: Priority;
 }
 
+interface TopicAnalysis {
+  topic: string;
+  incorrectCount: number;
+  totalAppearances: number;
+  errorRate: number;
+  quizTitles: string[];
+  sourceMaterial?: {
+    id: string;
+    fileName: string;
+  };
+  recommendation: string;
+}
+
 interface QuizTriggerContext {
   triggerType: 'QUIZ_COMPLETED';
   attempt: {
@@ -56,8 +69,13 @@ interface WeeklyTriggerContext {
     score: number;
     completedAt: Date | null;
     quiz: {
+      title: string;
       sourceMaterial: { id: string; fileName: string } | null;
     };
+    questionAttempts: Array<{
+      isCorrect: boolean;
+      quizQuestion: { questionText: string };
+    }>;
   }>;
 }
 
@@ -128,6 +146,17 @@ export class StudyCompanionAgent extends Agent {
         quiz: {
           include: {
             sourceMaterial: { select: { id: true, fileName: true } },
+          },
+          select: {
+            title: true,
+            sourceMaterial: true,
+          },
+        },
+        questionAttempts: {
+          include: {
+            quizQuestion: {
+              select: { questionText: true },
+            },
           },
         },
       },
@@ -275,10 +304,8 @@ export class StudyCompanionAgent extends Agent {
       }
     );
 
-    // Identify topics needing attention: declining or consistently low (<60%)
-    const topicsNeedingAttention = materialPerformance
-      .filter((m) => m.trend === 'DECLINING' || m.avgScore < 60)
-      .map((m) => m.materialName);
+    // Identify topics needing attention from incorrect answers
+    const topicsNeedingAttention = this.analyzeTopics(quizAttempts);
 
     const content = {
       weekSummary: {
@@ -364,5 +391,111 @@ export class StudyCompanionAgent extends Agent {
     if (last > first + 5) return 'IMPROVING';
     if (last < first - 5) return 'DECLINING';
     return 'STABLE';
+  }
+
+  /**
+   * Extract meaningful topics/concepts from question text
+   */
+  private extractPhrases(text: string): string[] {
+    const phrases: string[] = [];
+
+    // Match capitalized multi-word phrases (e.g., "Neural Network", "Gradient Descent")
+    const capitalizedPhrases = text.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/g) || [];
+    phrases.push(...capitalizedPhrases.map(p => p.toLowerCase()));
+
+    // Match technical terms and concepts
+    const technicalPattern = /\b(?:algorithm|function|method|process|technique|model|layer|network|optimization|gradient|backpropagation|convergence|activation|convolution|pooling|dropout|regularization|overfitting|underfitting|hyperparameter|epoch|batch|learning rate|loss function|accuracy|precision|recall|f1 score|confusion matrix|cross-validation|feature|classification|regression|clustering|supervised|unsupervised|reinforcement|deep learning|machine learning|artificial intelligence|neural|perceptron|sigmoid|relu|softmax|tanh|lstm|gru|rnn|cnn|gan|autoencoder|transformer|attention|embedding|tokenization|normalization|standardization|encoding|decoding)\b/gi;
+    const technicalTerms = text.match(technicalPattern) || [];
+    phrases.push(...technicalTerms.map(t => t.toLowerCase()));
+
+    // Remove duplicates
+    return Array.from(new Set(phrases));
+  }
+
+  /**
+   * Analyze quiz attempts to identify specific topics where the student struggles
+   */
+  private analyzeTopics(
+    quizAttempts: Array<{
+      quiz: {
+        title: string;
+        sourceMaterial: { id: string; fileName: string } | null;
+      };
+      questionAttempts: Array<{
+        isCorrect: boolean;
+        quizQuestion: { questionText: string };
+      }>;
+    }>
+  ): TopicAnalysis[] {
+    const topicMap = new Map<string, {
+      incorrect: number;
+      total: number;
+      quizTitles: Set<string>;
+      sourceMaterial?: { id: string; fileName: string };
+    }>();
+
+    // Analyze each quiz attempt
+    for (const attempt of quizAttempts) {
+      for (const qa of attempt.questionAttempts) {
+        const topics = this.extractPhrases(qa.quizQuestion.questionText);
+
+        for (const topic of topics) {
+          if (!topicMap.has(topic)) {
+            topicMap.set(topic, {
+              incorrect: 0,
+              total: 0,
+              quizTitles: new Set(),
+              sourceMaterial: attempt.quiz.sourceMaterial || undefined,
+            });
+          }
+
+          const entry = topicMap.get(topic)!;
+          entry.total++;
+          if (!qa.isCorrect) entry.incorrect++;
+          entry.quizTitles.add(attempt.quiz.title);
+        }
+      }
+    }
+
+    // Convert to TopicAnalysis array
+    const analyses: TopicAnalysis[] = [];
+
+    for (const [topic, data] of topicMap.entries()) {
+      const errorRate = data.incorrect / data.total;
+
+      // Only include topics with significant error rates (>=50% error and at least 2 incorrect)
+      if (errorRate >= 0.5 && data.incorrect >= 2) {
+        analyses.push({
+          topic,
+          incorrectCount: data.incorrect,
+          totalAppearances: data.total,
+          errorRate,
+          quizTitles: Array.from(data.quizTitles),
+          sourceMaterial: data.sourceMaterial,
+          recommendation: this.generateTopicRecommendation(topic, data),
+        });
+      }
+    }
+
+    // Sort by error rate descending, then by incorrect count descending
+    return analyses
+      .sort((a, b) => {
+        if (b.errorRate !== a.errorRate) return b.errorRate - a.errorRate;
+        return b.incorrectCount - a.incorrectCount;
+      })
+      .slice(0, 5); // Return top 5 topics needing attention
+  }
+
+  /**
+   * Generate specific recommendation for a topic
+   */
+  private generateTopicRecommendation(
+    topic: string,
+    data: { sourceMaterial?: { fileName: string } }
+  ): string {
+    if (data.sourceMaterial) {
+      return `Review ${topic} concepts in ${data.sourceMaterial.fileName}, then retake the quiz to reinforce your understanding.`;
+    }
+    return `Focus on understanding ${topic} concepts. Review your notes and practice more questions on this topic.`;
   }
 }

@@ -49,7 +49,18 @@ interface WeeklyContent {
     avgQuizScore: number;
   };
   materialPerformance: MaterialPerformance[];
-  topicsNeedingAttention: string[];
+  topicsNeedingAttention: Array<{
+    topic: string;
+    incorrectCount: number;
+    totalAppearances: number;
+    errorRate: number;
+    quizTitles: string[];
+    sourceMaterial?: {
+      id: string;
+      fileName: string;
+    };
+    recommendation: string;
+  }>;
 }
 
 type OutputContent = QuizContent | WeeklyContent;
@@ -241,18 +252,30 @@ function WeeklyOutputView({ content }: { content: WeeklyContent }) {
       {/* Topics needing attention */}
       {topicsNeedingAttention.length > 0 && (
         <Card className="border border-amber-500/30 bg-amber-500/10 dark:bg-amber-900/20">
-          <CardContent className="flex items-start gap-3 pt-4 pb-4">
-            <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-semibold text-amber-400 text-sm mb-1">Topics Needing Attention</p>
-              <div className="flex flex-wrap gap-1.5">
-                {topicsNeedingAttention.map((t, i) => (
-                  <Badge key={i} variant="outline" className="bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs">
-                    {t}
+          <CardHeader>
+            <CardTitle className="text-amber-400 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Topics Needing Attention
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {topicsNeedingAttention.map((topic, i) => (
+              <div key={i} className="p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="font-semibold text-red-300 capitalize">{topic.topic}</p>
+                  <Badge variant="outline" className="bg-red-500/20 text-red-300 border-red-500/30 text-xs shrink-0">
+                    {(topic.errorRate * 100).toFixed(0)}% error
                   </Badge>
-                ))}
+                </div>
+                <p className="text-xs text-red-400/80 mb-2">
+                  {topic.incorrectCount} incorrect attempt{topic.incorrectCount !== 1 ? 's' : ''} out of {topic.totalAppearances}
+                  {topic.sourceMaterial && ` • ${topic.sourceMaterial.fileName}`}
+                </p>
+                <p className="text-sm text-red-200/90">
+                  💡 {topic.recommendation}
+                </p>
               </div>
-            </div>
+            ))}
           </CardContent>
         </Card>
       )}

@@ -58,6 +58,86 @@ function addMinutes(date, mins) {
   return new Date(date.getTime() + mins * 60 * 1000);
 }
 
+/**
+ * Derive weak area analysis directly from wrong questions.
+ * No AI needed — uses the question text and explanation to extract topics.
+ * This mirrors what the AI would produce, ensuring the UI shows analysis
+ * immediately without the user needing to click "Analyze".
+ */
+function deriveWeakAreaAnalysis(wrongQuestions) {
+  if (wrongQuestions.length === 0) {
+    return { weakTopics: [], weakDifficulties: [], recommendations: ['Perfect score! No weak areas detected.'] };
+  }
+
+  // Extract the core concept from each wrong question using its explanation
+  const weakTopics = wrongQuestions.map(q => {
+    const text = q.questionText.toLowerCase();
+    const expl = (q.explanation || '').toLowerCase();
+
+    // Match known technical concepts in order of specificity
+    if (text.includes('vanishing gradient') || expl.includes('vanishing gradient')) return 'Vanishing Gradient Problem';
+    if (text.includes('backpropagation') || expl.includes('backpropagation')) return 'Backpropagation';
+    if (text.includes('activation function') || expl.includes('activation function')) return 'Activation Functions';
+    if (text.includes('overfitting') || expl.includes('overfitting')) return 'Overfitting & Regularization';
+    if (text.includes('gradient descent') || expl.includes('gradient descent')) return 'Gradient Descent';
+    if (text.includes('optimizer') || text.includes('adam') || expl.includes('adam')) return 'Optimizers (Adam, SGD)';
+    if (text.includes('sigmoid') || expl.includes('sigmoid')) return 'Sigmoid Activation';
+    if (text.includes('relu') || expl.includes('relu')) return 'ReLU Activation';
+    if (text.includes('convolutional') || text.includes('cnn') || expl.includes('convolutional')) return 'Convolutional Neural Networks';
+    if (text.includes('max pooling') || text.includes('pooling') || expl.includes('pooling')) return 'Pooling Layers';
+    if (text.includes('lstm') || expl.includes('lstm')) return 'LSTM Networks';
+    if (text.includes('rnn') || expl.includes('rnn') || text.includes('sequential')) return 'Recurrent Neural Networks';
+    if (text.includes('attention') || expl.includes('attention')) return 'Attention Mechanism';
+    if (text.includes('firewall') || expl.includes('firewall')) return 'Firewall Fundamentals';
+    if (text.includes('stateful') || expl.includes('stateful')) return 'Stateful Inspection';
+    if (text.includes('application-layer') || text.includes('application layer') || expl.includes('layer 7')) return 'Application-Layer Gateway';
+    if (text.includes('tls') || text.includes('https') || expl.includes('tls')) return 'TLS/HTTPS Encryption';
+    if (text.includes('dmz') || expl.includes('dmz')) return 'DMZ Architecture';
+    if (text.includes('packet filter') || expl.includes('packet')) return 'Packet Filtering';
+
+    // Fallback: extract first meaningful noun phrase from question
+    const words = q.questionText.replace(/[^a-zA-Z\s]/g, '').split(/\s+/).filter(w => w.length > 4);
+    return words.slice(0, 3).join(' ') || 'General Concepts';
+  });
+
+  // Deduplicate
+  const uniqueTopics = [...new Set(weakTopics)];
+
+  // Generate targeted recommendations per topic
+  const recommendations = uniqueTopics.map(topic => {
+    if (topic.includes('Backpropagation') || topic.includes('Gradient')) {
+      return `Review ${topic}: focus on how gradients flow through layers and the chain rule derivation.`;
+    }
+    if (topic.includes('Activation') || topic.includes('Sigmoid') || topic.includes('ReLU')) {
+      return `Study ${topic}: compare sigmoid, ReLU, and tanh — understand when to use each and their trade-offs.`;
+    }
+    if (topic.includes('Overfitting')) {
+      return `Review ${topic}: practice identifying overfitting symptoms and applying dropout, L2 regularization.`;
+    }
+    if (topic.includes('CNN') || topic.includes('Convolutional') || topic.includes('Pooling')) {
+      return `Revisit ${topic}: trace how feature maps are produced and reduced through conv + pool layers.`;
+    }
+    if (topic.includes('LSTM') || topic.includes('RNN') || topic.includes('Recurrent')) {
+      return `Study ${topic}: draw the gate diagrams and trace how hidden state flows across time steps.`;
+    }
+    if (topic.includes('Attention')) {
+      return `Review ${topic}: understand query-key-value mechanics and why it outperforms fixed-length encodings.`;
+    }
+    if (topic.includes('Firewall') || topic.includes('Packet') || topic.includes('Stateful')) {
+      return `Revisit ${topic}: compare packet filtering, stateful inspection, and application-layer gateways.`;
+    }
+    if (topic.includes('TLS') || topic.includes('HTTPS')) {
+      return `Review ${topic}: understand the TLS handshake and how certificates establish trust.`;
+    }
+    if (topic.includes('DMZ')) {
+      return `Study ${topic}: draw a network diagram showing DMZ placement between external and internal networks.`;
+    }
+    return `Review ${topic} in your study materials and attempt related practice questions.`;
+  });
+
+  return { weakTopics: uniqueTopics, weakDifficulties: [], recommendations };
+}
+
 async function resetDemoData(userId) {
   console.log('  Resetting demo data...');
   await prisma.quiz.deleteMany({ where: { userId, title: { contains: DEMO_TAG } } });
@@ -544,6 +624,20 @@ async function main() {
           },
         });
       }
+
+      // Pre-compute weak area analysis from wrong questions so the UI shows
+      // analysis immediately — no "Analyze" button click needed during demo.
+      const wrongQuestions = createdQuestions
+        .filter((_, i) => !cfg.correctIndices.includes(i))
+        .map(q => ({
+          questionText: q.questionText,
+          selectedAnswer: q.options.find(o => o !== q.correctAnswer) ?? q.options[0],
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation || '',
+        }));
+      const weakAreaAnalysis = deriveWeakAreaAnalysis(wrongQuestions);
+      await prisma.$executeRaw`UPDATE quiz_attempts SET "weakAreaAnalysis" = ${JSON.stringify(weakAreaAnalysis)}::jsonb WHERE id = ${attempt.id}`;
+
       totalAttempts++;
     }
 
@@ -567,17 +661,90 @@ async function main() {
   }
   console.log(`✅ Seeded ${FLASHCARD_SESSIONS.length} flashcard sessions`);
 
+  // --- Actual Flashcards (so they show up in the UI) ---
+  const FLASHCARD_DEFS = [
+    {
+      materialName: `Neural_Networks_Notes ${DEMO_TAG}.pdf`,
+      cards: [
+        { title: 'Activation Functions', question: 'What is the purpose of activation functions?', answer: 'Activation functions introduce non-linearity into neural networks, enabling them to learn complex patterns beyond linear relationships.', difficulty: 2, tags: ['neural-networks'] },
+        { title: 'Backpropagation', question: 'How does backpropagation work?', answer: 'Backpropagation computes gradients of the loss function with respect to weights using the chain rule, propagating errors backward through the network.', difficulty: 3, tags: ['neural-networks'] },
+        { title: 'Gradient Descent', question: 'What is gradient descent?', answer: 'Gradient descent is an optimization algorithm that iteratively adjusts weights in the direction of steepest descent of the loss function.', difficulty: 2, tags: ['neural-networks'] },
+        { title: 'Vanishing Gradient', question: 'What causes the vanishing gradient problem?', answer: 'In deep networks, gradients can become exponentially small as they propagate backward, making early layers learn very slowly.', difficulty: 3, tags: ['neural-networks'] },
+        { title: 'Sigmoid Function', question: 'What range does sigmoid output?', answer: 'The sigmoid function outputs values between 0 and 1, making it useful for binary classification and probability estimation.', difficulty: 1, tags: ['neural-networks'] },
+        { title: 'ReLU Activation', question: 'Why is ReLU popular?', answer: 'ReLU (Rectified Linear Unit) is computationally efficient, helps mitigate vanishing gradients, and introduces non-linearity while being simple to compute.', difficulty: 2, tags: ['neural-networks'] },
+        { title: 'Overfitting', question: 'What is overfitting?', answer: 'Overfitting occurs when a model learns training data too well, including noise, resulting in poor generalization to new data.', difficulty: 2, tags: ['neural-networks'] },
+        { title: 'Learning Rate', question: 'What does learning rate control?', answer: 'Learning rate controls the step size in gradient descent. Too high causes instability, too low causes slow convergence.', difficulty: 2, tags: ['neural-networks'] },
+        { title: 'Batch Normalization', question: 'What does batch normalization do?', answer: 'Batch normalization normalizes layer inputs, stabilizing training, allowing higher learning rates, and reducing sensitivity to initialization.', difficulty: 3, tags: ['neural-networks'] },
+        { title: 'Dropout', question: 'How does dropout prevent overfitting?', answer: 'Dropout randomly deactivates neurons during training, forcing the network to learn robust features and preventing co-adaptation.', difficulty: 2, tags: ['neural-networks'] },
+      ],
+    },
+    {
+      materialName: `Deep_Learning_Lecture_Notes ${DEMO_TAG}.pdf`,
+      cards: [
+        { title: 'Convolutional Layers', question: 'What do convolutional layers do?', answer: 'Convolutional layers apply learned filters to input data, extracting spatial features like edges, textures, and patterns.', difficulty: 2, tags: ['deep-learning'] },
+        { title: 'Max Pooling', question: 'What is the purpose of max pooling?', answer: 'Max pooling reduces spatial dimensions by taking the maximum value in each region, providing translation invariance and reducing computation.', difficulty: 2, tags: ['deep-learning'] },
+        { title: 'CNN Architecture', question: 'What are typical CNN layers?', answer: 'CNNs typically consist of convolutional layers, pooling layers, activation functions, and fully connected layers at the end.', difficulty: 2, tags: ['deep-learning'] },
+        { title: 'RNN Hidden State', question: 'What is RNN hidden state?', answer: 'Hidden state in RNNs carries information across time steps, allowing the network to maintain memory of previous inputs in a sequence.', difficulty: 3, tags: ['deep-learning'] },
+        { title: 'LSTM Gates', question: 'What are the three gates in LSTM?', answer: 'LSTMs have input gate (what to add), forget gate (what to remove), and output gate (what to expose) to control information flow.', difficulty: 3, tags: ['deep-learning'] },
+        { title: 'Attention Mechanism', question: 'What does attention mechanism do?', answer: 'Attention allows models to focus on relevant parts of input by computing weighted sums based on query-key similarity scores.', difficulty: 3, tags: ['deep-learning'] },
+        { title: 'Transfer Learning', question: 'What is transfer learning?', answer: 'Transfer learning uses pre-trained models on new tasks, leveraging learned features to reduce training time and data requirements.', difficulty: 2, tags: ['deep-learning'] },
+        { title: 'Encoder-Decoder', question: 'What is encoder-decoder architecture?', answer: 'Encoder-decoder architecture compresses input into a latent representation (encoder) then generates output from it (decoder).', difficulty: 3, tags: ['deep-learning'] },
+      ],
+    },
+    {
+      materialName: `Firewall_Security_Notes ${DEMO_TAG}.pdf`,
+      cards: [
+        { title: 'Firewall Purpose', question: 'What is the main purpose of a firewall?', answer: 'Firewalls monitor and control network traffic based on security rules, acting as a barrier between trusted and untrusted networks.', difficulty: 1, tags: ['network-security'] },
+        { title: 'Packet Filtering', question: 'How does packet filtering work?', answer: 'Packet filtering examines packet headers (IP, port, protocol) and allows or blocks traffic based on predefined rules.', difficulty: 2, tags: ['network-security'] },
+        { title: 'Stateful Inspection', question: 'What is stateful inspection?', answer: 'Stateful firewalls track active connections and make decisions based on connection state, not just individual packets.', difficulty: 2, tags: ['network-security'] },
+        { title: 'Application Layer Gateway', question: 'What layer does ALG operate at?', answer: 'Application Layer Gateways (proxy firewalls) operate at Layer 7, inspecting application-specific traffic like HTTP or FTP.', difficulty: 3, tags: ['network-security'] },
+        { title: 'TLS/SSL', question: 'What does TLS provide?', answer: 'TLS (Transport Layer Security) provides encryption, authentication, and integrity for network communications, securing data in transit.', difficulty: 2, tags: ['network-security'] },
+        { title: 'DMZ', question: 'What is a DMZ in networking?', answer: 'A DMZ (demilitarized zone) is a subnet that exposes external-facing services while isolating them from the internal network.', difficulty: 2, tags: ['network-security'] },
+        { title: 'IDS vs IPS', question: 'What is the difference between IDS and IPS?', answer: 'IDS (Intrusion Detection System) monitors and alerts, while IPS (Intrusion Prevention System) actively blocks detected threats.', difficulty: 2, tags: ['network-security'] },
+        { title: 'VPN', question: 'How does a VPN work?', answer: 'VPNs create encrypted tunnels over public networks, allowing secure remote access to private networks.', difficulty: 2, tags: ['network-security'] },
+      ],
+    },
+  ];
+
+  let totalFlashcardsCreated = 0;
+  for (const def of FLASHCARD_DEFS) {
+    const material = await prisma.sourceMaterial.findFirst({
+      where: { userId, fileName: def.materialName },
+    });
+    
+    if (material) {
+      for (const card of def.cards) {
+        await prisma.flashcard.create({
+          data: {
+            userId,
+            sourceMaterialId: material.id,
+            title: card.title,
+            question: card.question,
+            answer: card.answer,
+            difficulty: card.difficulty,
+            tags: card.tags,
+            grouping: card.tags[0],
+          },
+        });
+        totalFlashcardsCreated++;
+      }
+      console.log(`✅ Seeded ${def.cards.length} flashcards for ${def.materialName}`);
+    }
+  }
+
   const totalCards = FLASHCARD_SESSIONS.reduce((s, f) => s + f.cardCount, 0);
   const totalFocusMin = FOCUS_SESSIONS.reduce((s, f) => s + f.duration, 0);
 
   console.log('\n🎉 Demo data seeded successfully!');
   console.log(`   Focus: ${FOCUS_SESSIONS.length} sessions, ${(totalFocusMin / 60).toFixed(1)}h total`);
   console.log(`   Quizzes: ${QUIZ_DEFS.length} quizzes, ${totalAttempts} attempts`);
-  console.log(`   Flashcards: ${FLASHCARD_SESSIONS.length} sessions, ${totalCards} cards reviewed`);
+  console.log(`   Flashcards: ${totalFlashcardsCreated} cards created, ${FLASHCARD_SESSIONS.length} sessions, ${totalCards} cards reviewed`);
   console.log('\n   Open the app and check:');
   console.log('   → /focus/analytics — 14 days of focus data, INCREASING trend');
   console.log('   → /study/analytics — 3 quizzes, 15 attempts, 10 flashcard sessions');
   console.log('   → /study/quizzes   — all 3 demo quizzes with attempt history');
+  console.log('   → /study/flashcards — 3 documents with flashcards ready to review');
+  console.log('   → /study/documents — 3 demo documents uploaded');
   console.log('\n   Then run: node scripts/demo-run-agents.mjs your@email.com\n');
 }
 
