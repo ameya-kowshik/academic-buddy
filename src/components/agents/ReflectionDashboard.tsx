@@ -250,7 +250,7 @@ export default function ReflectionDashboard() {
   const historyOutputs = activeOutputs.slice(1);
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl mx-auto">
       {/* Period toggle */}
       <div className="flex gap-2">
         <Button
