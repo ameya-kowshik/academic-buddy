@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FlashcardFormProps {
   onSubmit: (flashcardData: FlashcardFormData) => Promise<void>;
@@ -50,6 +51,7 @@ export default function FlashcardForm({
     tags: initialData?.tags || [],
   });
 
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [error, setError] = useState("");
@@ -57,11 +59,14 @@ export default function FlashcardForm({
   // Fetch documents for linking
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!userId) return;
+      if (!userId || !user) return;
 
       setLoadingDocuments(true);
       try {
-        const response = await fetch("/api/documents");
+        const token = await user.getIdToken();
+        const response = await fetch("/api/documents", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch documents");
         }
@@ -75,7 +80,7 @@ export default function FlashcardForm({
     };
 
     fetchDocuments();
-  }, [userId]);
+  }, [userId, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

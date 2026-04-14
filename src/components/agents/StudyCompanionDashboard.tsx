@@ -45,6 +45,7 @@ interface WeeklyContent {
   weekSummary: {
     totalFlashcardSessions: number;
     totalFlashcardCards: number;
+    totalFlashcardMinutes: number;
     totalQuizAttempts: number;
     avgQuizScore: number;
   };
@@ -55,10 +56,7 @@ interface WeeklyContent {
     totalAppearances: number;
     errorRate: number;
     quizTitles: string[];
-    sourceMaterial?: {
-      id: string;
-      fileName: string;
-    };
+    sourceMaterial?: { id: string; fileName: string };
     recommendation: string;
   }>;
 }
@@ -79,7 +77,7 @@ const priorityConfig: Record<Priority, { label: string; className: string }> = {
 };
 
 const trendIcon: Record<MaterialTrend, React.ReactNode> = {
-  IMPROVING: <TrendingUp className="w-3.5 h-3.5 text-green-400" />,
+  IMPROVING: <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />,
   DECLINING: <TrendingDown className="w-3.5 h-3.5 text-red-400" />,
   STABLE: <Minus className="w-3.5 h-3.5 text-slate-400" />,
 };
@@ -115,33 +113,29 @@ function QuizOutputView({ content }: { content: QuizContent }) {
     FIRST_ATTEMPT: "First Attempt",
   };
   const trendClass: Record<ProgressTrend, string> = {
-    IMPROVING: "bg-green-500/20 text-green-400 border-green-500/30",
+    IMPROVING: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     DECLINING: "bg-red-500/20 text-red-400 border-red-500/30",
     STABLE: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-    FIRST_ATTEMPT: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    FIRST_ATTEMPT: "bg-violet-500/20 text-violet-400 border-violet-500/30",
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
-        <Card className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="flex-1 bg-slate-900/50 border-slate-700/50">
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Quiz Score
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Quiz Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-slate-900 dark:text-white">
+            <p className="text-4xl font-bold text-slate-100">
               {quizScore.toFixed(0)}
-              <span className="text-lg font-normal text-slate-400 ml-1">%</span>
+              <span className="text-lg font-normal text-slate-500 ml-1">%</span>
             </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="flex-1 bg-slate-900/50 border-slate-700/50">
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Progress
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-400">Progress</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <Badge variant="outline" className={`text-sm px-3 py-1 ${trendClass[progressTrend]}`}>
@@ -152,11 +146,9 @@ function QuizOutputView({ content }: { content: QuizContent }) {
       </div>
 
       {knowledgeGaps.length > 0 && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Topics to Review
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-200">Topics to Review</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {knowledgeGaps.map((gap, i) => (
@@ -169,11 +161,9 @@ function QuizOutputView({ content }: { content: QuizContent }) {
       )}
 
       {recommendations.length > 0 && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Recommendations
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-200">Recommendations</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {recommendations.map((rec, i) => (
@@ -199,10 +189,10 @@ function WeeklyOutputView({ content }: { content: WeeklyContent }) {
           { label: "Quiz Attempts", value: weekSummary.totalQuizAttempts },
           { label: "Avg Quiz Score", value: `${weekSummary.avgQuizScore.toFixed(0)}%` },
         ].map(({ label, value }) => (
-          <Card key={label} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <Card key={label} className="bg-slate-800/50 border-slate-700/50">
             <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
+              <p className="text-xs text-slate-500">{label}</p>
+              <p className="text-2xl font-bold text-slate-100 mt-1">{value}</p>
             </CardContent>
           </Card>
         ))}
@@ -210,34 +200,26 @@ function WeeklyOutputView({ content }: { content: WeeklyContent }) {
 
       {/* Material performance */}
       {materialPerformance.length > 0 && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <Card className="bg-slate-900/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Performance by Material
-            </CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-200">Performance by Material</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-slate-500 dark:text-slate-400 text-left">
+                <tr className="text-slate-500 text-left">
                   <th className="pb-2 font-medium">Material</th>
                   <th className="pb-2 font-medium text-right">Avg Score</th>
                   <th className="pb-2 font-medium text-right">Attempts</th>
                   <th className="pb-2 font-medium text-right">Trend</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody className="divide-y divide-slate-800/60">
                 {materialPerformance.map((m) => (
                   <tr key={m.materialId}>
-                    <td className="py-2 text-slate-700 dark:text-slate-300 truncate max-w-[140px]">
-                      {m.materialName}
-                    </td>
-                    <td className="py-2 text-right text-slate-700 dark:text-slate-300">
-                      {m.avgScore.toFixed(0)}%
-                    </td>
-                    <td className="py-2 text-right text-slate-500 dark:text-slate-400">
-                      {m.attemptCount}
-                    </td>
+                    <td className="py-2 text-slate-300 truncate max-w-[140px]">{m.materialName}</td>
+                    <td className="py-2 text-right text-slate-300">{m.avgScore.toFixed(0)}%</td>
+                    <td className="py-2 text-right text-slate-500">{m.attemptCount}</td>
                     <td className="py-2 text-right flex justify-end items-center gap-1">
                       {trendIcon[m.trend]}
                     </td>
@@ -251,29 +233,27 @@ function WeeklyOutputView({ content }: { content: WeeklyContent }) {
 
       {/* Topics needing attention */}
       {topicsNeedingAttention.length > 0 && (
-        <Card className="border border-amber-500/30 bg-amber-500/10 dark:bg-amber-900/20">
+        <Card className="border border-amber-500/30 bg-amber-500/5">
           <CardHeader>
-            <CardTitle className="text-amber-400 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
+            <CardTitle className="text-amber-400 flex items-center gap-2 text-sm">
+              <AlertCircle className="w-4 h-4" />
               Topics Needing Attention
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {topicsNeedingAttention.map((topic, i) => (
-              <div key={i} className="p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="font-semibold text-red-300 capitalize">{topic.topic}</p>
-                  <Badge variant="outline" className="bg-red-500/20 text-red-300 border-red-500/30 text-xs shrink-0">
+              <div key={i} className="p-3 bg-slate-800/60 border border-slate-700/50 rounded-lg">
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <p className="font-semibold text-slate-200 capitalize text-sm">{topic.topic}</p>
+                  <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs shrink-0">
                     {(topic.errorRate * 100).toFixed(0)}% error
                   </Badge>
                 </div>
-                <p className="text-xs text-red-400/80 mb-2">
-                  {topic.incorrectCount} incorrect attempt{topic.incorrectCount !== 1 ? 's' : ''} out of {topic.totalAppearances}
+                <p className="text-xs text-slate-500 mb-2">
+                  {topic.incorrectCount} incorrect out of {topic.totalAppearances}
                   {topic.sourceMaterial && ` • ${topic.sourceMaterial.fileName}`}
                 </p>
-                <p className="text-sm text-red-200/90">
-                  💡 {topic.recommendation}
-                </p>
+                <p className="text-sm text-slate-300">💡 {topic.recommendation}</p>
               </div>
             ))}
           </CardContent>
@@ -287,25 +267,56 @@ export default function StudyCompanionDashboard() {
   const { user } = useAuth();
   const [outputs, setOutputs] = useState<AgentOutputRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
-    const fetchOutputs = async () => {
-      if (!user) return;
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollCount = 0;
+    const MAX_POLLS = 5;
+    const POLL_INTERVAL_MS = 3000;
+
+    const fetchOutputs = async (): Promise<AgentOutputRecord[]> => {
+      if (!user) return [];
       try {
         const token = await user.getIdToken();
         const res = await fetch("/api/agents/outputs?agentId=study-companion&limit=10", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) return;
+        if (!res.ok) return [];
         const data = await res.json();
-        if (Array.isArray(data.outputs)) setOutputs(data.outputs);
+        return Array.isArray(data.outputs) ? data.outputs : [];
       } catch {
-        // Silently ignore
-      } finally {
-        setLoading(false);
+        return [];
       }
     };
-    fetchOutputs();
+
+    const load = async () => {
+      const results = await fetchOutputs();
+      setOutputs(results);
+      setLoading(false);
+
+      if (results.length === 0) {
+        setPolling(true);
+        const poll = async () => {
+          if (pollCount >= MAX_POLLS) {
+            setPolling(false);
+            return;
+          }
+          pollCount++;
+          const polled = await fetchOutputs();
+          if (polled.length > 0) {
+            setOutputs(polled);
+            setPolling(false);
+          } else {
+            pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+          }
+        };
+        pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+      }
+    };
+
+    load();
+    return () => { if (pollTimer) clearTimeout(pollTimer); };
   }, [user]);
 
   if (loading) {
@@ -319,15 +330,16 @@ export default function StudyCompanionDashboard() {
   if (outputs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3 text-slate-400">
-        <Brain className="w-10 h-10 opacity-40" />
+        <Brain className={`w-10 h-10 opacity-40 ${polling ? "animate-pulse" : ""}`} />
         <p className="text-sm text-center max-w-xs">
-          No insights yet — complete a quiz or check back after your first weekly summary.
+          {polling
+            ? "Analyzing your quiz results…"
+            : "No insights yet — complete a quiz or check back after your first weekly summary."}
         </p>
       </div>
     );
   }
 
-  // Split outputs into weekly summaries and quiz outputs
   const weeklyOutputs = outputs.filter((o) => isWeeklyContent(o.content));
   const quizOutputs = outputs.filter((o) => !isWeeklyContent(o.content));
   const latestWeekly = weeklyOutputs[0];
@@ -335,14 +347,11 @@ export default function StudyCompanionDashboard() {
 
   return (
     <div className="space-y-8 p-4 max-w-2xl mx-auto">
-      {/* Weekly summary section */}
       {latestWeekly && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Layers className="w-4 h-4 text-blue-400" />
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Weekly Study Summary
-            </h2>
+            <Layers className="w-4 h-4 text-violet-400" />
+            <h2 className="text-sm font-semibold text-slate-200">Weekly Study Summary</h2>
             <span className="text-xs text-slate-500 ml-auto">
               {new Date(latestWeekly.createdAt).toLocaleDateString()}
             </span>
@@ -351,14 +360,11 @@ export default function StudyCompanionDashboard() {
         </section>
       )}
 
-      {/* Latest quiz output */}
       {latestQuiz && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <BookOpen className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Latest Quiz Analysis
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-200">Latest Quiz Analysis</h2>
             <span className="text-xs text-slate-500 ml-auto">
               {new Date(latestQuiz.createdAt).toLocaleDateString()}
             </span>

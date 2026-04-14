@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, AlertCircle, Trash2, GripVertical, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface QuizFormProps {
   onSubmit: (quizData: QuizFormData) => Promise<void>;
@@ -56,6 +57,7 @@ export default function QuizForm({
     questions: initialData?.questions || [],
   });
 
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [error, setError] = useState("");
@@ -63,11 +65,14 @@ export default function QuizForm({
   // Fetch documents for linking
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!userId) return;
+      if (!userId || !user) return;
 
       setLoadingDocuments(true);
       try {
-        const response = await fetch("/api/documents");
+        const token = await user.getIdToken();
+        const response = await fetch("/api/documents", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch documents");
         }
@@ -81,7 +86,7 @@ export default function QuizForm({
     };
 
     fetchDocuments();
-  }, [userId]);
+  }, [userId, user]);
 
   const addQuestion = () => {
     const newQuestion: QuestionData = {

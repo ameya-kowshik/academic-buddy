@@ -1,61 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import StudyAnalyticsDashboard from "@/components/analytics/StudyAnalyticsDashboard";
 import WeakAreasComponent from "@/components/analytics/WeakAreasComponent";
 import QuizAttemptsHistory from "@/components/analytics/QuizAttemptsHistory";
 import StudyCompanionDashboard from "@/components/agents/StudyCompanionDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Brain, HelpCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type SectionType = "overview" | "quiz-history" | "study-companion";
 
-/** Fetches once to decide whether to show the real dashboard or the empty CTA. */
-function StudyCompanionSection() {
-  const [hasOutputs, setHasOutputs] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    fetch("/api/agents/outputs?agentId=study-companion&limit=1")
-      .then((r) => (r.ok ? r.json() : { outputs: [] }))
-      .then((data) => {
-        setHasOutputs(Array.isArray(data.outputs) && data.outputs.length > 0);
-      })
-      .catch(() => setHasOutputs(false));
-  }, []);
-
-  if (hasOutputs === null) {
-    return (
-      <div className="flex items-center justify-center h-64 text-slate-400">
-        <p className="text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (!hasOutputs) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-400">
-        <Brain className="w-12 h-12 opacity-30" />
-        <p className="text-base text-slate-300 font-medium">No AI analysis yet</p>
-        <p className="text-sm text-center max-w-xs">
-          Complete a quiz to get your first AI analysis of your knowledge gaps and study
-          recommendations.
-        </p>
-        <Link
-          href="/study/quizzes"
-          className="mt-2 flex items-center gap-2 px-4 py-2 rounded-full bg-violet-700 hover:bg-violet-600 text-white text-sm font-medium transition-colors"
-        >
-          <HelpCircle className="w-4 h-4" />
-          Take a Quiz
-        </Link>
-      </div>
-    );
-  }
-
-  return <StudyCompanionDashboard />;
-}
 
 function StudyAnalyticsContent({ userId }: { userId: string }) {
   const [activeSection, setActiveSection] = useState<SectionType>("overview");
@@ -132,7 +89,7 @@ function StudyAnalyticsContent({ userId }: { userId: string }) {
         )}
 
         {/* Study Companion */}
-        {activeSection === "study-companion" && <StudyCompanionSection />}
+        {activeSection === "study-companion" && <StudyCompanionDashboard />}
       </main>
     </div>
   );
