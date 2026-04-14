@@ -588,66 +588,78 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Tagline quote */}
-      <section className="relative z-10 px-6 py-16">
-        <div className="max-w-3xl mx-auto text-center scroll-animate">
-          <blockquote className="text-2xl md:text-3xl font-light text-slate-300 italic leading-relaxed">
-            "Faith without knowledge is hope. Knowledge without faith is anxiety.
-            <br />
-            <span className="text-violet-400 not-italic font-semibold">Veyra gives you both.</span>"
-          </blockquote>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="relative z-10 px-6 py-20">
-        <div className="max-w-3xl mx-auto text-center scroll-animate">
-          <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-3xl p-12 border border-slate-700/50 backdrop-blur-sm">
-            <h2 className="text-4xl font-bold mb-4">
-              <span className="text-slate-100">Ready to Study with </span>
-              <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                Confidence?
-              </span>
-            </h2>
-            <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-              Upload your first document and have flashcards ready in under a minute.
-              No setup, no credit card, no guesswork.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {user ? (
-                <Link href="/study/documents">
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-400 hover:to-blue-500 text-white text-lg px-8 py-4 rounded-xl shadow-2xl shadow-violet-500/25 transition-all duration-300 hover:scale-105 group"
-                  >
-                    <Upload className="mr-3 h-5 w-5" />
-                    Upload a Document
-                    <ChevronRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/signup">
-                    <Button
-                      size="lg"
-                      className="bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-400 hover:to-blue-500 text-white text-lg px-8 py-4 rounded-xl shadow-2xl shadow-violet-500/25 transition-all duration-300 hover:scale-105 group"
-                    >
-                      <Zap className="mr-3 h-5 w-5" />
-                      Start with Veyra — Free
-                      <ChevronRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1" />
+      <section className="relative z-10 px-6 py-24">
+        <div className="max-w-5xl mx-auto scroll-animate">
+          {/* Glow accent */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-[600px] h-[300px] bg-gradient-to-r from-violet-600/20 via-blue-600/20 to-cyan-600/20 rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-slate-800/90 rounded-3xl border border-slate-700/50 backdrop-blur-sm overflow-hidden">
+            {/* Top accent line */}
+            <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-blue-500 to-cyan-400" />
+
+            <div className="p-12 md:p-16 text-center">
+              {/* Tagline */}
+              <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-6">
+                Stop studying harder. Start studying right.
+              </p>
+
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                <span className="text-slate-100">Every hour you study should </span>
+                <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  actually count.
+                </span>
+              </h2>
+
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+                Veyra gives you the content, the clarity, and the coaching — so you walk into every exam knowing exactly where you stand.
+              </p>
+
+              {/* Stat strip */}
+              <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto mb-10">
+                {[
+                  { value: "3", label: "AI Pillars" },
+                  { value: "4", label: "Autonomous Agents" },
+                  { value: "< 1 min", label: "To first flashcard" },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">{stat.value}</p>
+                    <p className="text-slate-500 text-xs mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {user ? (
+                  <Link href="/study/documents">
+                    <Button size="lg" className="bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-400 hover:to-blue-500 text-white text-lg px-10 py-4 rounded-xl shadow-2xl shadow-violet-500/30 transition-all duration-300 hover:scale-105 group">
+                      <Upload className="mr-3 h-5 w-5" />
+                      Upload a Document
+                      <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Button>
                   </Link>
-                  <Link href="/login">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-slate-800/60 hover:text-violet-300 hover:border-violet-400/50 text-lg px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Link href="/signup">
+                      <Button size="lg" className="bg-gradient-to-r from-violet-500 to-blue-600 hover:from-violet-400 hover:to-blue-500 text-white text-lg px-10 py-4 rounded-xl shadow-2xl shadow-violet-500/30 transition-all duration-300 hover:scale-105 group">
+                        <Zap className="mr-3 h-5 w-5" />
+                        Get Started — It's Free
+                        <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button size="lg" variant="outline" className="bg-slate-800/40 border-slate-600/50 text-slate-200 hover:bg-slate-800/60 hover:text-violet-300 hover:border-violet-400/50 text-lg px-10 py-4 rounded-xl transition-all duration-300 hover:scale-105">
+                        Sign In
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              <p className="text-slate-600 text-xs mt-6">No credit card. No setup. Just upload and go.</p>
             </div>
           </div>
         </div>
