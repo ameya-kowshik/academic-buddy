@@ -14,11 +14,11 @@ import {
   ClipboardList,
   Timer,
   TrendingDown,
+  TrendingUp,
   Sparkles,
   CheckCircle,
   ChevronRight,
   Upload,
-  Star,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,21 +53,24 @@ export default function LandingPage() {
   const steps = [
     {
       icon: FileText,
-      title: "Upload Your Notes",
-      description: "Upload any PDF — lecture notes, textbooks, research papers. Veyra reads it so you don't have to start from scratch.",
+      title: "AI-Powered Content Generation",
+      description: "Upload any PDF and Veyra instantly generates flashcards and quizzes using LLaMA 3.3 70B. Difficulty levels 1–5, up to 50 questions — zero manual work.",
       gradient: "from-cyan-500 to-blue-500",
+      label: "Pillar 1",
     },
     {
-      icon: Sparkles,
-      title: "AI Builds Your Study Set",
-      description: "LLaMA 3.3 70B generates flashcards and quizzes tailored to your material. No manual work, no guesswork.",
+      icon: BarChart3,
+      title: "Comprehensive Learning Analytics",
+      description: "Every quiz attempt, flashcard review, and focus session is tracked. Weak area detection, score trends, and 7/30/90-day breakdowns give you the full picture.",
       gradient: "from-violet-500 to-purple-600",
+      label: "Pillar 2",
     },
     {
-      icon: TrendingDown,
-      title: "Trust the Process",
-      description: "Analytics surface exactly where you're weak. Veyra gives you the truth about your knowledge — so you can act on it.",
+      icon: Brain,
+      title: "Multi-Agent Behavioral Intelligence",
+      description: "Four specialized AI agents — Focus Coach, Study Companion, Productivity Analyst, and Reflection Agent — work together to proactively surface insights and coach your behavior.",
       gradient: "from-emerald-500 to-teal-500",
+      label: "Pillar 3",
     },
   ];
 
@@ -75,26 +78,30 @@ export default function LandingPage() {
     {
       icon: BookOpen,
       title: "AI Flashcards",
-      description: "Question-answer pairs generated from your documents with difficulty ratings from 1 to 5.",
+      description: "AI-generated question-answer pairs from your PDFs, with difficulty ratings 1–5 and spaced review tracking.",
       gradient: "from-cyan-500 to-blue-500",
+      pillar: "Pillar 1",
     },
     {
       icon: ClipboardList,
       title: "Adaptive Quizzes",
-      description: "Timed multiple-choice quizzes with per-question tracking, scoring, and detailed explanations.",
-      gradient: "from-violet-500 to-purple-600",
+      description: "Timed multiple-choice quizzes with per-question scoring, correct/wrong tracking, and AI weak-area analysis.",
+      gradient: "from-blue-500 to-indigo-500",
+      pillar: "Pillar 1",
     },
     {
       icon: BarChart3,
-      title: "Study Analytics",
-      description: "Dashboard showing scores, trends, and weak areas across all your attempts over time.",
-      gradient: "from-emerald-500 to-teal-500",
+      title: "Learning Analytics",
+      description: "Track flashcards reviewed, quizzes completed, avg quiz score, and total study time — across 7, 30, or 90 days.",
+      gradient: "from-violet-500 to-purple-600",
+      pillar: "Pillar 2",
     },
     {
-      icon: Timer,
-      title: "Focus Sessions",
-      description: "Pomodoro and stopwatch timers to track your study time and build consistent habits.",
-      gradient: "from-orange-500 to-red-500",
+      icon: Brain,
+      title: "4 AI Agents",
+      description: "Focus Coach, Study Companion, Productivity Analyst, and Reflection Agent — each analyzing your behavior from a different angle.",
+      gradient: "from-emerald-500 to-teal-500",
+      pillar: "Pillar 3",
     },
   ];
 
@@ -151,24 +158,26 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto text-center">
           <div className="scroll-animate">
             <Badge className="mb-6 bg-violet-500/15 text-violet-300 border-violet-500/30 px-4 py-2 text-sm font-medium">
-              <Star className="w-3.5 h-3.5 mr-2 inline fill-violet-300" />
-              Veyra — from <em>viera</em>, meaning faith &amp; truth
+              <Sparkles className="w-3.5 h-3.5 mr-2 inline" />
+              AI-Powered Study Platform — Free to Get Started
             </Badge>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 scroll-animate leading-tight">
+          <h1 className="text-6xl md:text-8xl font-extrabold mb-4 scroll-animate leading-none tracking-tight">
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Have Faith
+              Veyra
             </span>
-            <br />
-            <span className="text-slate-100">in Your Studies</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed scroll-animate">
-            Veyra turns your PDF notes into flashcards, quizzes, and a clear picture of what you actually know —
-            so you can study with confidence, not anxiety.
+          <p className="text-2xl md:text-3xl font-semibold text-slate-200 mb-5 scroll-animate tracking-tight">
+            Study smarter. Focus deeper. Know exactly where you stand.
           </p>
-          <p className="text-slate-500 text-base mb-12 scroll-animate">
+
+          <p className="text-lg md:text-xl text-slate-400 mb-4 max-w-2xl mx-auto leading-relaxed scroll-animate">
+            Veyra turns your PDFs into flashcards and quizzes, tracks your weak areas with AI,
+            and coaches your focus sessions — so every hour you put in actually counts.
+          </p>
+          <p className="text-slate-500 text-sm mb-12 scroll-animate">
             Powered by LLaMA 3.3 70B via Groq
           </p>
 
@@ -214,13 +223,13 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16 scroll-animate">
             <h2 className="text-4xl font-bold mb-4 text-slate-100">
-              Three Steps to{" "}
+              Three Pillars of{" "}
               <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                Clarity
+                Intelligent Learning
               </span>
             </h2>
             <p className="text-slate-400 text-lg max-w-xl mx-auto">
-              Veyra removes the uncertainty from studying. You bring the material — Veyra brings the truth about where you stand.
+              Veyra isn't just a study tool. It's a coordinated intelligence system built around three interconnected pillars.
             </p>
           </div>
 
@@ -246,7 +255,7 @@ export default function LandingPage() {
                       <Icon className="h-8 w-8 text-white" />
                     </div>
                     <div className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-2">
-                      Step {i + 1}
+                      {s.label}
                     </div>
                     <h3 className="text-xl font-semibold text-slate-100 mb-3">{s.title}</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">{s.description}</p>
@@ -263,13 +272,13 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 scroll-animate">
             <h2 className="text-4xl font-bold mb-4 text-slate-100">
-              Built for Students Who{" "}
+              What's Inside{" "}
               <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                Mean It
+                Each Pillar
               </span>
             </h2>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Every feature in Veyra is designed around one idea — giving you an honest, accurate picture of your knowledge.
+              Every feature maps directly to one of the three pillars — nothing is filler.
             </p>
           </div>
 
@@ -282,10 +291,15 @@ export default function LandingPage() {
                   className="bg-slate-900/50 border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:scale-105 group"
                 >
                   <CardContent className="p-6">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-br ${c.gradient} rounded-xl flex items-center justify-center mb-4 shadow-lg transition-transform group-hover:scale-110`}
-                    >
-                      <Icon className="h-6 w-6 text-white" />
+                    <div className="flex items-center justify-between mb-4">
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-br ${c.gradient} rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110`}
+                      >
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 bg-slate-800/60 px-2 py-1 rounded-full border border-slate-700/50">
+                        {c.pillar}
+                      </span>
                     </div>
                     <h3 className="text-slate-100 font-semibold mb-2 group-hover:text-violet-300 transition-colors">
                       {c.title}
@@ -299,76 +313,274 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Truth section — weak areas */}
+      {/* Pillar 1 — Content Generation showcase */}
       <section className="relative z-10 px-6 py-20">
         <div className="max-w-5xl mx-auto scroll-animate">
           <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-3xl p-10 md:p-14 border border-slate-700/50 backdrop-blur-sm">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <Badge className="mb-4 bg-violet-500/15 text-violet-300 border-violet-500/30">
-                  <Sparkles className="w-3 h-3 mr-1 inline" />
-                  The Truth Engine
+                <Badge className="mb-4 bg-cyan-500/15 text-cyan-300 border-cyan-500/30">
+                  <FileText className="w-3 h-3 mr-1 inline" />
+                  Pillar 1 — AI Content Generation
                 </Badge>
                 <h3 className="text-3xl font-bold text-slate-100 mb-4">
-                  Veyra Tells You What You Don't Know
+                  Upload a PDF. Get a Full Study Set.
                 </h3>
                 <p className="text-slate-300 text-lg mb-6 leading-relaxed">
-                  Most students study what they're comfortable with. Veyra identifies the gaps —
-                  the topics where your confidence doesn't match your actual score — and puts them
-                  front and center. That's the truth part of the name.
+                  Veyra extracts your document and uses LLaMA 3.3 70B via Groq to generate
+                  flashcards and quizzes in seconds. No manual work, no copy-pasting — just
+                  upload and study.
                 </p>
                 <div className="space-y-3">
                   {[
-                    "Weak area detection from every quiz attempt",
-                    "LLM-powered personalized recommendations",
-                    "Score trends that show if you're actually improving",
-                    "Focus time tracked per topic so nothing gets ignored",
+                    "Flashcards with difficulty ratings 1–5, generated from your content",
+                    "Multiple-choice quizzes with up to 50 questions per document",
+                    "Configurable difficulty level before generation",
+                    "Works with lecture notes, textbooks, and research papers",
                   ].map((point, i) => (
                     <div key={i} className="flex items-center text-slate-300">
-                      <CheckCircle className="h-5 w-5 text-violet-400 mr-3 flex-shrink-0" />
-                      <span>{point}</span>
+                      <CheckCircle className="h-5 w-5 text-cyan-400 mr-3 flex-shrink-0" />
+                      <span className="text-sm">{point}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Mock analytics */}
-              <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-600/30">
-                <div className="flex items-center justify-between mb-5">
-                  <span className="text-slate-300 font-medium text-sm">Weak Areas — Last 30 Days</span>
-                  <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 text-xs">
-                    2 need attention
-                  </Badge>
+              {/* Content generation mock */}
+              <div className="bg-slate-800/50 rounded-2xl p-5 border border-slate-600/30 space-y-4">
+                {/* Document */}
+                <div className="flex items-center gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-200 text-sm font-medium truncate">Neural_Networks.pdf</p>
+                    <p className="text-slate-500 text-xs">2.4 MB · Uploaded just now</p>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex-shrink-0">Ready</span>
                 </div>
-                <div className="space-y-4">
+                {/* Generation options */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-900/60 rounded-xl border border-cyan-500/30 p-3 text-center">
+                    <BookOpen className="w-5 h-5 text-cyan-400 mx-auto mb-1.5" />
+                    <p className="text-slate-200 text-sm font-medium">Flashcards</p>
+                    <p className="text-slate-500 text-xs">Difficulty: 3/5</p>
+                    <div className="mt-2 text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">20 generated</div>
+                  </div>
+                  <div className="bg-slate-900/60 rounded-xl border border-violet-500/30 p-3 text-center">
+                    <ClipboardList className="w-5 h-5 text-violet-400 mx-auto mb-1.5" />
+                    <p className="text-slate-200 text-sm font-medium">Quiz</p>
+                    <p className="text-slate-500 text-xs">10 questions · Timed</p>
+                    <div className="mt-2 text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">Ready to take</div>
+                  </div>
+                </div>
+                {/* Sample flashcard */}
+                <div className="bg-slate-900/60 rounded-xl border border-slate-700/50 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-slate-500 text-xs uppercase tracking-wide">Sample Flashcard</span>
+                    <div className="flex gap-1">
+                      {[1,2,3,4,5].map(n => (
+                        <div key={n} className={`w-2 h-2 rounded-full ${n <= 3 ? "bg-cyan-400" : "bg-slate-700"}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-slate-300 text-sm font-medium mb-2">What is backpropagation?</p>
+                  <p className="text-slate-500 text-xs leading-relaxed">An algorithm that computes gradients of the loss function with respect to each weight by applying the chain rule, propagating errors backward through the network.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pillar 2 — Study Analytics showcase */}
+      <section className="relative z-10 px-6 py-20">
+        <div className="max-w-5xl mx-auto scroll-animate">
+          <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-3xl p-10 md:p-14 border border-slate-700/50 backdrop-blur-sm">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <Badge className="mb-4 bg-cyan-500/15 text-cyan-300 border-cyan-500/30">
+                  <BarChart3 className="w-3 h-3 mr-1 inline" />
+                  Pillar 2 — Learning Analytics
+                </Badge>
+                <h3 className="text-3xl font-bold text-slate-100 mb-4">
+                  Know Exactly Where You Stand
+                </h3>
+                <p className="text-slate-300 text-lg mb-6 leading-relaxed">
+                  After every quiz, Veyra's AI pinpoints the topics you're weak on and tells you
+                  exactly what to review next. No more guessing what to study — the data does the thinking.
+                </p>
+                <div className="space-y-3">
                   {[
-                    { topic: "Neural Networks", score: 42, color: "from-red-500 to-orange-500" },
-                    { topic: "Firewall Concepts", score: 58, color: "from-orange-500 to-yellow-500" },
-                    { topic: "OSI Model", score: 81, color: "from-emerald-500 to-teal-500" },
-                  ].map((item, i) => (
-                    <div key={i}>
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="text-slate-300">{item.topic}</span>
-                        <span className={item.score < 70 ? "text-orange-400 font-medium" : "text-emerald-400 font-medium"}>
-                          {item.score}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full bg-gradient-to-r ${item.color} transition-all duration-700`}
-                          style={{ width: `${item.score}%` }}
-                        />
-                      </div>
+                    "Flashcards reviewed, quizzes completed, avg score — all in one view",
+                    "AI weak-area analysis on every quiz attempt",
+                    "Score trends across 7, 30, and 90 day windows",
+                    "LLM-powered recommendations tied to your actual results",
+                  ].map((point, i) => (
+                    <div key={i} className="flex items-center text-slate-300">
+                      <CheckCircle className="h-5 w-5 text-cyan-400 mr-3 flex-shrink-0" />
+                      <span className="text-sm">{point}</span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-5 p-3 bg-violet-500/10 border border-violet-500/20 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-violet-300 text-xs leading-relaxed">
-                      Veyra suggests reviewing Neural Networks flashcards before your next attempt. Your last 3 scores show a declining trend.
-                    </p>
+              </div>
+
+              {/* Study Overview mock — matches real StudyAnalyticsDashboard UI */}
+              <div className="bg-slate-800/50 rounded-2xl p-5 border border-slate-600/30 space-y-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <BarChart3 className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-300 font-medium text-sm">Study Overview</span>
+                  <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">7 Days</span>
+                </div>
+                {/* Stat cards — exact colors from real UI */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Flashcards Reviewed", value: "84", color: "text-cyan-400", border: "border-slate-700/50" },
+                    { label: "Quizzes Completed", value: "12", color: "text-purple-400", border: "border-slate-700/50" },
+                    { label: "Avg Quiz Score", value: "73%", color: "text-green-400", border: "border-slate-700/50" },
+                    { label: "Total Study Time", value: "6h 20m", color: "text-blue-400", border: "border-slate-700/50" },
+                  ].map((stat, i) => (
+                    <div key={i} className={`bg-slate-800/40 rounded-lg p-3 border ${stat.border}`}>
+                      <p className="text-slate-400 text-xs mb-1">{stat.label}</p>
+                      <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+                {/* Weak area analysis — matches WeakAreasComponent */}
+                <div className="pt-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-slate-400 text-xs uppercase tracking-wide">Weak Area Analysis</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30">2 need attention</span>
                   </div>
+                  <div className="space-y-2.5">
+                    {[
+                      { topic: "Neural Networks", score: 42, color: "from-red-500 to-orange-500", textColor: "text-orange-400" },
+                      { topic: "Firewall Concepts", score: 58, color: "from-orange-500 to-yellow-500", textColor: "text-orange-400" },
+                      { topic: "OSI Model", score: 81, color: "from-emerald-500 to-teal-500", textColor: "text-emerald-400" },
+                    ].map((item, i) => (
+                      <div key={i}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-slate-300">{item.topic}</span>
+                          <span className={`font-medium ${item.textColor}`}>{item.score}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-1.5">
+                          <div className={`h-1.5 rounded-full bg-gradient-to-r ${item.color}`} style={{ width: `${item.score}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 p-2.5 bg-violet-500/10 border border-violet-500/20 rounded-lg flex items-start gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-violet-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-violet-300 text-xs leading-relaxed">Review Neural Networks flashcards — your last 3 scores show a declining trend.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pillar 3 — Multi-Agent Intelligence showcase */}
+      <section className="relative z-10 px-6 py-20">
+        <div className="max-w-5xl mx-auto scroll-animate">
+          <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-3xl p-10 md:p-14 border border-slate-700/50 backdrop-blur-sm">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Focus session mock — matches real Focus page UI */}
+              <div className="bg-slate-800/50 rounded-2xl p-5 border border-slate-600/30 space-y-4 order-2 lg:order-1">
+                {/* Timer display */}
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-md flex items-center justify-center">
+                    <Timer className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="text-slate-300 font-medium text-sm">Focus Session</span>
+                  <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Pomodoro</span>
+                </div>
+                <div className="flex items-center justify-center py-4">
+                  <div className="relative w-28 h-28">
+                    <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="rgb(51,65,85)" strokeWidth="8" />
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="url(#timerGrad)" strokeWidth="8"
+                        strokeDasharray="263.9" strokeDashoffset="66" strokeLinecap="round" />
+                      <defs>
+                        <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#10b981" />
+                          <stop offset="100%" stopColor="#14b8a6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-slate-100 tabular-nums">18:45</span>
+                      <span className="text-xs text-slate-400">Focus</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Tag */}
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="text-xs px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">📚 Computer Networks</span>
+                </div>
+                {/* Weekly productivity report — matches ProductivityAnalystDashboard */}
+                <div className="border-t border-slate-700/50 pt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-xs uppercase tracking-wide">Weekly Report</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />Increasing
+                    </span>
+                  </div>
+                  <div className="flex items-end gap-3">
+                    <span className="text-4xl font-bold text-slate-100">78</span>
+                    <span className="text-slate-500 text-sm mb-1">/100 weekly score</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    {[
+                      { label: "Focus Hours", value: "+12.5%" },
+                      { label: "Sessions", value: "+8.3%" },
+                      { label: "Avg Score", value: "+5.1%" },
+                    ].map((m, i) => (
+                      <div key={i} className="bg-slate-800/60 rounded-lg p-2 text-center">
+                        <p className="text-slate-500 mb-0.5">{m.label}</p>
+                        <p className="text-emerald-400 font-semibold">{m.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Coach tip — matches FocusCoachNotification */}
+                  <div className="bg-slate-900/60 border border-slate-700/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-5 h-5 bg-gradient-to-br from-cyan-500 to-blue-600 rounded flex items-center justify-center">
+                        <Brain className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-slate-300 text-xs font-semibold">Focus Coach</span>
+                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">MEDIUM</span>
+                    </div>
+                    <p className="text-slate-400 text-xs leading-relaxed">Your sessions are getting shorter after 8 PM. Try shifting your deep work to mornings for better retention.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-1 lg:order-2">
+                <Badge className="mb-4 bg-emerald-500/15 text-emerald-300 border-emerald-500/30">
+                  <Brain className="w-3 h-3 mr-1 inline" />
+                  Pillar 3 — Multi-Agent Intelligence
+                </Badge>
+                <h3 className="text-3xl font-bold text-slate-100 mb-4">
+                  Four Agents. One Unified Learning Experience.
+                </h3>
+                <p className="text-slate-300 text-lg mb-6 leading-relaxed">
+                  This is what makes Veyra fundamentally different. Four specialized autonomous agents
+                  analyze your behavior from different angles — proactively surfacing insights
+                  without you having to ask.
+                </p>
+                <div className="space-y-3">
+                  {[
+                    "Focus Coach — inline feedback after every session (5ms latency)",
+                    "Study Companion — identifies knowledge gaps from quiz performance",
+                    "Productivity Analyst — weekly score, burnout detection, trend analysis",
+                    "Reflection Agent — correlates focus hours with quiz scores across time",
+                  ].map((point, i) => (
+                    <div key={i} className="flex items-center text-slate-300">
+                      <CheckCircle className="h-5 w-5 text-emerald-400 mr-3 flex-shrink-0" />
+                      <span className="text-sm">{point}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
